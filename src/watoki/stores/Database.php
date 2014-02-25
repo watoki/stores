@@ -18,7 +18,7 @@ class Database {
     public function readOne($sql, $variables = array()) {
         $result = $this->readAll($sql, $variables);
         if (empty($result)) {
-            throw new \PDOException("Empty result");
+            throw new \PDOException("Empty result for [$sql, " . var_export($variables, true) . "]");
         }
         return $result[0];
     }
@@ -28,7 +28,7 @@ class Database {
             return $this->doExecute($sql, $variables)->fetchAll();
         } catch (\PDOException $e) {
             $message = $e->getMessage();
-            throw new \PDOException("Error [$message] while executing query [$sql]");
+            throw new \PDOException("Error [$message] while executing query [$sql, " . var_export($variables, true) . "]");
         }
     }
 
@@ -37,7 +37,7 @@ class Database {
             $this->doExecute($sql, $variables);
         } catch (\PDOException $e) {
             $message = $e->getMessage();
-            throw new \PDOException("Error [$message] while executing [$sql]");
+            throw new \PDOException("Error [$message] while executing [$sql, " . var_export($variables, true) . "]");
         }
     }
 
