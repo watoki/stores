@@ -28,10 +28,16 @@ abstract class Store {
         return end($parts);
     }
 
-    public function createTable() {
+    public function createTable($properties = null) {
         $tableName = $this->getTableName();
-        $definition = $this->repo->getSerializer($this->getEntityClass())->getDefinition();
+        $definition = $this->getSerializer()->getDefinition($properties);
         $this->db->execute("CREATE TABLE IF NOT EXISTS $tableName ($definition);");
+    }
+
+    public function createColumn($property, $default = null) {
+        $definition = $this->getSerializer()->getPropertyDefinition($property);
+        $quotedDefault = $this->db->quote($default);
+        $this->db->execute("ALTER TABLE {$this->getTableName()} ADD COLUMN $definition DEFAULT $quotedDefault");
     }
 
     public function dropTable() {
@@ -106,6 +112,13 @@ abstract class Store {
             $entities[] = $this->inflate($row);
         }
         return $entities;
+    }
+
+    /**
+     * @return ObjectSerializer
+     */
+    private function getSerializer() {
+        return $this->repo->getSerializer($this->getEntityClass());
     }
 
 }

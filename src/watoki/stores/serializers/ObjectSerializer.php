@@ -30,6 +30,7 @@ class ObjectSerializer implements Serializer {
 
     public function inflate($serialized) {
         $inflated = $this->class->newInstanceWithoutConstructor();
+        $inflated->id = $serialized['id'];
         foreach ($this->getPersistedProperties() as $property) {
             if (!array_key_exists($property->getName(), $serialized)) {
                 continue;
@@ -42,16 +43,22 @@ class ObjectSerializer implements Serializer {
         return $inflated;
     }
 
-    public function getDefinition() {
+    public function getDefinition($properties = null) {
         $fields = array('id' => '"id" INTEGER NOT NULL');
         foreach ($this->getPersistedProperties() as $property) {
-            $fields[$property->getName()] = '"' . $property->getName() . '" ' . $this->getFieldDefinition($property);
+            if (!$properties || in_array($property->getName(), $properties)) {
+                $fields[$property->getName()] = $this->getPropertyDefinition($property->getName());
+            }
         }
 
         $definitions = array_values($fields);
         $definitions[] = 'PRIMARY KEY ("id")';
 
         return implode(', ', $definitions);
+    }
+
+    public function getPropertyDefinition($propertyName) {
+        return '"' . $propertyName . '" ' . $this->getFieldDefinition($this->class->getProperty($propertyName));
     }
 
     private function getFieldDefinition(\ReflectionProperty $property) {
@@ -63,7 +70,7 @@ class ObjectSerializer implements Serializer {
         }
 
         $definition = $this->repo->getSerializer($this->getTypeOfProperty($property))->getDefinition();
-        return $definition . (!$nullAllowed ? ' NOT NULL' : '');
+        return $definition . (!$nullAllowed ? ' NOT NULL' : ' DEFAULT NULL');
     }
 
     private function getTypeOfProperty(\ReflectionProperty $property) {
