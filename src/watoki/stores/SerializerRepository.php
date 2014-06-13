@@ -1,6 +1,7 @@
 <?php
 namespace watoki\stores;
 
+use watoki\stores\serializers\ArraySerializer;
 use watoki\stores\serializers\BooleanSerializer;
 use watoki\stores\serializers\DateTimeSerializer;
 use watoki\stores\serializers\IntegerSerializer;
@@ -65,6 +66,7 @@ class SerializerRepository {
         $this->setSerializer(self::TYPE_BOOLEAN, new BooleanSerializer());
         $this->setSerializer(self::TYPE_STRING, new StringSerializer());
         $this->setSerializer(self::TYPE_NULL, new NullSerializer());
+        $this->setSerializer(self::TYPE_ARRAY, new ArraySerializer());
         $this->setSerializer(get_class(new \DateTime()), new DateTimeSerializer());
     }
 
