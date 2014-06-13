@@ -2,17 +2,18 @@
 namespace watoki\stores\serializers;
 
 use watoki\stores\Serializer;
-class ArraySerializer implements Serializer{
-	public function serialize($inflated) {
-		return json_encode($inflated);
 
-	}
+class ArraySerializer implements Serializer {
 
-	public function inflate($serialized) {
-		return !!$serialized;
-	}
+    public function serialize($inflated) {
+        return json_encode($inflated);
+    }
 
-	public function getDefinition() {
-		return 'ARRAY';
-	}
+    public function inflate($serialized) {
+        return json_decode($serialized, true);
+    }
+
+    public function getDefinition() {
+        return 'TEXT(1024)';
+    }
 } 
