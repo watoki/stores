@@ -13,7 +13,9 @@ abstract class Store extends \watoki\stores\Store {
     }
 
     public function read($id) {
-        // TODO: Implement read() method.
+        $entity = $this->inflate(file_get_contents($this->getFile($id)));
+        $entity->id = $id;
+        return $entity;
     }
 
     public function create($entity) {
@@ -26,11 +28,11 @@ abstract class Store extends \watoki\stores\Store {
     }
 
     public function update($entity) {
-        // TODO: Implement update() method.
+        $this->create($entity);
     }
 
     public function delete($entity) {
-        // TODO: Implement delete() method.
+        unlink($this->getFile($entity->id));
     }
 
     protected function createEntitySerializer() {
