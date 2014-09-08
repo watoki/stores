@@ -1,11 +1,12 @@
 <?php
 namespace spec\watoki\stores\pdo;
 
+use spec\watoki\stores\TestEntity;
 use watoki\scrut\Specification;
 use watoki\stores\pdo\SerializerRepository;
 use watoki\stores\pdo\Store;
 
-class PdoTest extends Specification {
+class PdoStoreTest extends Specification {
 
     function testCreateTable() {
         $this->store->createTable();
