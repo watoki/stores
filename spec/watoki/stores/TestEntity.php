@@ -1,6 +1,9 @@
 <?php
 namespace spec\watoki\stores;
 
+/**
+ * @property mixed id
+ */
 class TestEntity {
 
     public static $CLASS = __CLASS__;
