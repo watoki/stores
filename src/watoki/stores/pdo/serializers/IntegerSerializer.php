@@ -1,7 +1,7 @@
 <?php
-namespace watoki\stores\serializers;
+namespace watoki\stores\pdo\serializers;
 
-use watoki\stores\Serializer;
+use watoki\stores\pdo\Serializer;
 
 class IntegerSerializer implements Serializer {
 

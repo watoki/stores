@@ -1,5 +1,5 @@
 <?php
-namespace watoki\stores;
+namespace watoki\stores\pdo;
 
 class Database {
 
@@ -12,7 +12,7 @@ class Database {
 
     function __construct(\PDO $pdo) {
         $this->pdo = $pdo;
-        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION );
+        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
     public function readOne($sql, $variables = array()) {
@@ -25,7 +25,7 @@ class Database {
 
     public function readAll($sql, $variables = array()) {
         try {
-            return $this->doExecute($sql, $variables)->fetchAll();
+            return $this->doExecute($sql, $variables)->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             $message = $e->getMessage();
             throw new \PDOException("Error [$message] while executing query [$sql]");

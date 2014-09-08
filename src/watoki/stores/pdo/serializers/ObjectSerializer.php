@@ -1,8 +1,8 @@
 <?php
-namespace watoki\stores\serializers;
+namespace watoki\stores\pdo\serializers;
 
-use watoki\stores\Serializer;
-use watoki\stores\SerializerRepository;
+use watoki\stores\pdo\Serializer;
+use watoki\stores\pdo\SerializerRepository;
 use watoki\factory\ClassResolver;
 
 class ObjectSerializer implements Serializer {
@@ -10,7 +10,7 @@ class ObjectSerializer implements Serializer {
     /** @var \ReflectionClass */
     private $class;
 
-    /** @var \watoki\stores\SerializerRepository */
+    /** @var \watoki\stores\pdo\SerializerRepository */
     private $repo;
 
     function __construct($class, SerializerRepository $repo) {

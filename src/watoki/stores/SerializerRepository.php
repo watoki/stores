@@ -1,11 +1,6 @@
 <?php
 namespace watoki\stores;
 
-use watoki\stores\serializers\BooleanSerializer;
-use watoki\stores\serializers\DateTimeSerializer;
-use watoki\stores\serializers\IntegerSerializer;
-use watoki\stores\serializers\StringSerializer;
-
 class SerializerRepository {
 
     const TYPE_STRING = 'string';
@@ -35,35 +30,31 @@ class SerializerRepository {
         return $this->serializers[$type];
     }
 
-    public function getType($inflated) {
-        if (is_object($inflated)) {
-            return get_class($inflated);
-        } else if (is_string($inflated)) {
+    public function getType($value) {
+        if (is_object($value)) {
+            return get_class($value);
+        } else if (is_string($value)) {
             return self::TYPE_STRING;
-        } else if (is_null($inflated)) {
+        } else if (is_null($value)) {
             return self::TYPE_NULL;
-        } else if (is_array($inflated)) {
+        } else if (is_array($value)) {
             return self::TYPE_ARRAY;
-        } else if (is_bool($inflated)) {
+        } else if (is_bool($value)) {
             return self::TYPE_BOOLEAN;
-        } else if (is_int($inflated)) {
+        } else if (is_int($value)) {
             return self::TYPE_INTEGER;
-        } else if (is_float($inflated)) {
+        } else if (is_float($value)) {
             return self::TYPE_FLOAT;
-        } else if (is_double($inflated)) {
+        } else if (is_double($value)) {
             return self::TYPE_DOUBLE;
-        } else if (is_long($inflated)) {
+        } else if (is_long($value)) {
             return self::TYPE_LONG;
         }
 
         throw new \Exception('Could not determine type.');
     }
 
-    private function setDefaultSerializers() {
-        $this->setSerializer(self::TYPE_INTEGER, new IntegerSerializer());
-        $this->setSerializer(self::TYPE_BOOLEAN, new BooleanSerializer());
-        $this->setSerializer(self::TYPE_STRING, new StringSerializer());
-        $this->setSerializer(get_class(new \DateTime()), new DateTimeSerializer());
+    protected function setDefaultSerializers() {
     }
 
 } 

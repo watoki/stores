@@ -7,6 +7,4 @@ interface Serializer {
 
     public function inflate($serialized);
 
-    public function getDefinition();
-
 } 

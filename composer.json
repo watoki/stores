@@ -21,8 +21,8 @@
     },
     "autoload": {
         "psr-0": {
-            "watoki\\store": "src/",
-            "spec\\watoki\\store": ""
+            "watoki\\stores": "src/",
+            "spec\\watoki\\stores": ""
         }
     },
     "minimum-stability": "dev"
