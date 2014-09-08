@@ -18,17 +18,13 @@ abstract class Store extends \watoki\stores\Store {
         return $entity;
     }
 
-    public function create($entity) {
+    public function create($entity, $id = null) {
+        $entity->id = is_null($id) ? uniqid() : $id;
         file_put_contents($this->getFile($entity->id), $this->serialize($entity));
     }
 
-    public function createAt($id, $entity) {
-        $entity->id = $id;
-        $this->create($entity);
-    }
-
     public function update($entity) {
-        $this->create($entity);
+        $this->create($entity, $entity->id);
     }
 
     public function delete($entity) {

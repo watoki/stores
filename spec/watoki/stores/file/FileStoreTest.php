@@ -8,7 +8,7 @@ use watoki\stores\file\SerializerRepository;
 class FileStoreTest extends Specification {
 
     function testCreate() {
-        $this->store->createAt('here', new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 'here');
         $this->assertExists('here');
         $this->assertContent('here', '{
             "boolean": true,
@@ -22,7 +22,7 @@ class FileStoreTest extends Specification {
 
     function testRead() {
         $dateTime = new \DateTime('2001-01-01');
-        $this->store->createAt('here', new TestEntity(true, 42, 1.6, 'Hello', $dateTime));
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', $dateTime), 'here');
 
         /** @var TestEntity $entity */
         $entity = $this->store->read('here');
@@ -37,7 +37,7 @@ class FileStoreTest extends Specification {
 
     function testUpdate() {
         $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
-        $this->store->createAt('here', $entity);
+        $this->store->create($entity, 'here');
 
         $entity->setString('Hello back');
         $this->store->update($entity);
@@ -54,7 +54,7 @@ class FileStoreTest extends Specification {
 
     function testDelete() {
         $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
-        $this->store->createAt('here', $entity);
+        $this->store->create($entity, 'here');
 
         $this->store->delete($entity);
 

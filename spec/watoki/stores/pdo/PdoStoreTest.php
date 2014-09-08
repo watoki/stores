@@ -45,6 +45,24 @@ class PdoStoreTest extends Specification {
         ));
     }
 
+    function testCreateWithId() {
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 17);
+        $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "id") ' .
+            'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :id)' .
+            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01 00:00:00","null":null,"id":17}');
+        $this->assertTable(array(
+            array(
+                'id' => "17",
+                'boolean' => "1",
+                'integer' => "42",
+                'float' => "1.6",
+                'string' => "Hello",
+                'dateTime' => "2001-01-01 00:00:00",
+                'null' => null
+            )
+        ));
+    }
+
     function testRead() {
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
         /** @var TestEntity $entity */

@@ -42,8 +42,12 @@ abstract class Store extends \watoki\stores\Store {
         $this->db->execute("DROP TABLE $tableName;");
     }
 
-    public function create($entity) {
+    public function create($entity, $id = null) {
         $columns = $this->serialize($entity);
+
+        if (!is_null($id)) {
+            $columns['id'] = $id;
+        }
 
         $quotedColumns = implode(', ', array_map(function ($key) {
             return '"' . $key . '"';

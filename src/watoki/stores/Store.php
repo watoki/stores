@@ -15,7 +15,7 @@ abstract class Store {
 
     abstract public function read($id);
 
-    abstract public function create($entity);
+    abstract public function create($entity, $id = null);
 
     abstract public function update($entity);
 
