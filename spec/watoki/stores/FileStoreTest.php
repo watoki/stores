@@ -5,7 +5,7 @@ use spec\watoki\stores\lib\TestEntity;
 use watoki\scrut\Specification;
 use watoki\stores\file\raw\File;
 use watoki\stores\file\SerializerRepository;
-use watoki\stores\file\Store;
+use watoki\stores\file\FileStore;
 use watoki\stores\file\raw\Store as RawFileStore;
 
 class FileStoreTest extends Specification {
@@ -70,7 +70,7 @@ class FileStoreTest extends Specification {
         $this->assertNotExists('here');
     }
 
-    /** @var Store */
+    /** @var FileStore */
     private $store;
 
     private $tmpDir;
@@ -81,7 +81,7 @@ class FileStoreTest extends Specification {
         $this->tmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'watokistores';
         $this->clear($this->tmpDir);
         mkdir($this->tmpDir);
-        $this->store = new Store(TestEntity::$CLASS, new SerializerRepository(), $this->tmpDir);
+        $this->store = new FileStore(TestEntity::$CLASS, new SerializerRepository(), $this->tmpDir);
     }
 
     private function assertExists($key) {

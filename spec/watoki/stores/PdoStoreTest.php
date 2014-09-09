@@ -5,7 +5,7 @@ use spec\watoki\stores\lib\TestDatabase;
 use spec\watoki\stores\lib\TestEntity;
 use watoki\scrut\Specification;
 use watoki\stores\pdo\SerializerRepository;
-use watoki\stores\pdo\Store;
+use watoki\stores\pdo\PdoStore;
 
 class PdoStoreTest extends Specification {
 
@@ -161,7 +161,7 @@ class PdoStoreTest extends Specification {
         $this->assertLog('SELECT * FROM TestEntity WHERE "integer" = ? -- [42]');
     }
 
-    /** @var Store */
+    /** @var PdoStore */
     private $store;
 
     /** @var \spec\watoki\stores\lib\TestDatabase */
@@ -170,7 +170,7 @@ class PdoStoreTest extends Specification {
     protected function setUp() {
         parent::setUp();
         $this->db = new TestDatabase(new \PDO('sqlite::memory:'));
-        $this->store = new Store(TestEntity::$CLASS, new SerializerRepository(), $this->db);
+        $this->store = new PdoStore(TestEntity::$CLASS, new SerializerRepository(), $this->db);
 
         $this->store->createTable();
     }

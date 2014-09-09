@@ -4,7 +4,7 @@ namespace spec\watoki\stores;
 use spec\watoki\stores\lib\TestEntity;
 use watoki\scrut\Specification;
 use watoki\stores\memory\SerializerRepository;
-use watoki\stores\memory\Store;
+use watoki\stores\memory\MemoryStore;
 
 class MemoryStoreTest extends Specification {
 
@@ -30,12 +30,12 @@ class MemoryStoreTest extends Specification {
         }
     }
 
-    /** @var Store */
+    /** @var MemoryStore */
     private $store;
 
     protected function setUp() {
         parent::setUp();
-        $this->store = new Store(TestEntity::$CLASS, new SerializerRepository());
+        $this->store = new MemoryStore(TestEntity::$CLASS, new SerializerRepository());
     }
 
 } 

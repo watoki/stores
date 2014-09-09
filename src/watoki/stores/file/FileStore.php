@@ -1,9 +1,9 @@
 <?php
 namespace watoki\stores\file;
 
-use watoki\stores\SerializerRepository;
+use watoki\stores\Store;
 
-class Store extends \watoki\stores\Store {
+class FileStore extends Store {
 
     private $root;
 
@@ -33,6 +33,10 @@ class Store extends \watoki\stores\Store {
 
     public function delete($entity) {
         unlink($this->getFile($entity->id));
+    }
+
+    public function exists($id) {
+        return file_exists($this->getFile($id));
     }
 
     protected function createEntitySerializer() {

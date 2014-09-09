@@ -1,11 +1,17 @@
 <?php
 namespace watoki\stores\memory;
 
-class Store extends \watoki\stores\Store {
+use watoki\stores\Store;
+
+class MemoryStore extends Store {
 
     private $memory = array();
 
     private $currentId = 0;
+
+    public function __construct($entityClass, SerializerRepository $serializers) {
+        parent::__construct($entityClass, $serializers);
+    }
 
     public function read($id) {
         try {

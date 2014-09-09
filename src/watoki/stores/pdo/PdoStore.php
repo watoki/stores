@@ -2,8 +2,9 @@
 namespace watoki\stores\pdo;
 
 use watoki\stores\pdo\serializers\ObjectSerializer;
+use watoki\stores\Store;
 
-class Store extends \watoki\stores\Store {
+class PdoStore extends Store {
 
     public static $CLASS = __CLASS__;
 
