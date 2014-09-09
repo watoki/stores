@@ -14,7 +14,7 @@ abstract class Store {
     public function __construct($entityClass, SerializerRepository $serializers) {
         $this->entityClass = $entityClass;
         $this->serializers = $serializers;
-        $serializers->setSerializer($entityClass, $this->createEntitySerializer());
+        $serializers->setSerializer($this->getEntityClass(), $this->createEntitySerializer());
     }
 
     abstract public function read($id);

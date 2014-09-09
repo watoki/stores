@@ -3,8 +3,10 @@ namespace spec\watoki\stores;
 
 use spec\watoki\stores\lib\TestEntity;
 use watoki\scrut\Specification;
+use watoki\stores\file\raw\File;
 use watoki\stores\file\SerializerRepository;
 use watoki\stores\file\Store;
+use watoki\stores\file\raw\Store as RawFileStore;
 
 class FileStoreTest extends Specification {
 
@@ -19,6 +21,12 @@ class FileStoreTest extends Specification {
             "dateTime": "2001-01-01T00:00:00+01:00",
             "null": null
         }');
+    }
+
+    function testCreateRawFile() {
+        $this->store = new RawFileStore(new SerializerRepository(), $this->tmpDir);
+        $this->store->create(new File('Some text'), 'here');
+        $this->assertRawContent('here', 'Some text');
     }
 
     function testRead() {
@@ -87,6 +95,10 @@ class FileStoreTest extends Specification {
     private function assertContent($key, $content) {
         $this->assertEquals(json_decode($content, true),
             json_decode(file_get_contents($this->tmpDir . DIRECTORY_SEPARATOR . $key), true));
+    }
+
+    private function assertRawContent($key, $content) {
+        $this->assertEquals($content, file_get_contents($this->tmpDir . DIRECTORY_SEPARATOR . $key));
     }
 
     private function clear($dir) {
