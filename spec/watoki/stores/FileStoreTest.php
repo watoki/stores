@@ -9,9 +9,9 @@ use watoki\stores\file\Store;
 class FileStoreTest extends Specification {
 
     function testCreate() {
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 'here');
-        $this->assertExists('here');
-        $this->assertContent('here', '{
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 'there/here');
+        $this->assertExists('there/here');
+        $this->assertContent('there/here', '{
             "boolean": true,
             "integer": 42,
             "float": 1.6,

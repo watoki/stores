@@ -20,7 +20,11 @@ class Store extends \watoki\stores\Store {
 
     public function create($entity, $id = null) {
         $entity->id = is_null($id) ? uniqid() : $id;
-        file_put_contents($this->getFile($entity->id), $this->serialize($entity));
+        $file = $this->getFile($entity->id);
+        if (!file_exists(dirname($file))) {
+            mkdir(dirname($file), 0777, true);
+        }
+        file_put_contents($file, $this->serialize($entity));
     }
 
     public function update($entity) {
