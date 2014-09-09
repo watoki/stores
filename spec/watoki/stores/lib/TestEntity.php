@@ -1,5 +1,5 @@
 <?php
-namespace spec\watoki\stores;
+namespace spec\watoki\stores\lib;
 
 /**
  * @property mixed id

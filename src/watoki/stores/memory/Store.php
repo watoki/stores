@@ -1,7 +1,7 @@
 <?php
 namespace watoki\stores\memory;
 
-abstract class Store extends \watoki\stores\Store {
+class Store extends \watoki\stores\Store {
 
     private $memory = array();
 

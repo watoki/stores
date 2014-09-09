@@ -1,16 +1,17 @@
 <?php
-namespace spec\watoki\stores\memory;
+namespace spec\watoki\stores;
 
-use spec\watoki\stores\TestEntity;
+use spec\watoki\stores\lib\TestEntity;
 use watoki\scrut\Specification;
 use watoki\stores\memory\SerializerRepository;
+use watoki\stores\memory\Store;
 
 class MemoryStoreTest extends Specification {
 
     function testCreate() {
-        $entity1 = new TestEntity(true, 42, 1.6, "Hi", new \DateTime());
+        $entity1 = new lib\TestEntity(true, 42, 1.6, "Hi", new \DateTime());
         $this->store->create($entity1);
-        $entity2 = new TestEntity(true, 42, 1.6, "Hi", new \DateTime());
+        $entity2 = new lib\TestEntity(true, 42, 1.6, "Hi", new \DateTime());
         $this->store->create($entity2);
 
         $this->assertSame($entity1, $this->store->read($entity1->id));
@@ -19,7 +20,7 @@ class MemoryStoreTest extends Specification {
     }
 
     function testReadWrongId() {
-        $this->store->create(new TestEntity(true, 42, 1.6, "Hi", new \DateTime()));
+        $this->store->create(new lib\TestEntity(true, 42, 1.6, "Hi", new \DateTime()));
 
         try {
             $this->store->read(12);
@@ -29,12 +30,12 @@ class MemoryStoreTest extends Specification {
         }
     }
 
-    /** @var TestStore */
+    /** @var Store */
     private $store;
 
     protected function setUp() {
         parent::setUp();
-        $this->store = new TestStore(new SerializerRepository());
+        $this->store = new Store(TestEntity::$CLASS, new SerializerRepository());
     }
 
 } 

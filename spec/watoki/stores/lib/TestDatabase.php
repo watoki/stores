@@ -1,5 +1,5 @@
 <?php
-namespace spec\watoki\stores\pdo;
+namespace spec\watoki\stores\lib;
 
 use watoki\stores\pdo\Database;
 

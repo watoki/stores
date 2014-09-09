@@ -8,9 +8,13 @@ abstract class Store {
     /** @var SerializerRepository */
     private $serializers;
 
-    public function __construct(SerializerRepository $serializers) {
+    /** @var string */
+    private $entityClass;
+
+    public function __construct($entityClass, SerializerRepository $serializers) {
+        $this->entityClass = $entityClass;
         $this->serializers = $serializers;
-        $serializers->setSerializer($this->getEntityClass(), $this->createEntitySerializer());
+        $serializers->setSerializer($entityClass, $this->createEntitySerializer());
     }
 
     abstract public function read($id);
@@ -21,9 +25,14 @@ abstract class Store {
 
     abstract public function delete($entity);
 
-    abstract protected function getEntityClass();
-
     abstract protected function createEntitySerializer();
+
+    /**
+     * @return string
+     */
+    protected function getEntityClass() {
+        return $this->entityClass;
+    }
 
     /**
      * @return SerializerRepository

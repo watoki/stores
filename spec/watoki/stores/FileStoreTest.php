@@ -1,9 +1,10 @@
 <?php
-namespace spec\watoki\stores\file;
+namespace spec\watoki\stores;
 
-use spec\watoki\stores\TestEntity;
+use spec\watoki\stores\lib\TestEntity;
 use watoki\scrut\Specification;
 use watoki\stores\file\SerializerRepository;
+use watoki\stores\file\Store;
 
 class FileStoreTest extends Specification {
 
@@ -22,7 +23,7 @@ class FileStoreTest extends Specification {
 
     function testRead() {
         $dateTime = new \DateTime('2001-01-01');
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', $dateTime), 'here');
+        $this->store->create(new lib\TestEntity(true, 42, 1.6, 'Hello', $dateTime), 'here');
 
         /** @var TestEntity $entity */
         $entity = $this->store->read('here');
@@ -36,7 +37,7 @@ class FileStoreTest extends Specification {
     }
 
     function testUpdate() {
-        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $entity = new lib\TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
         $this->store->create($entity, 'here');
 
         $entity->setString('Hello back');
@@ -61,7 +62,7 @@ class FileStoreTest extends Specification {
         $this->assertNotExists('here');
     }
 
-    /** @var TestStore */
+    /** @var Store */
     private $store;
 
     private $tmpDir;
@@ -72,7 +73,7 @@ class FileStoreTest extends Specification {
         $this->tmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'watokistores';
         $this->clear($this->tmpDir);
         mkdir($this->tmpDir);
-        $this->store = new TestStore(new SerializerRepository(), $this->tmpDir);
+        $this->store = new Store(TestEntity::$CLASS, new SerializerRepository(), $this->tmpDir);
     }
 
     private function assertExists($key) {

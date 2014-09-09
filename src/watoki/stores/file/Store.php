@@ -3,12 +3,12 @@ namespace watoki\stores\file;
 
 use watoki\stores\SerializerRepository;
 
-abstract class Store extends \watoki\stores\Store {
+class Store extends \watoki\stores\Store {
 
     private $root;
 
-    public function __construct(SerializerRepository $serializers, $rootDirectory) {
-        parent::__construct($serializers);
+    public function __construct($entityClass, SerializerRepository $serializers, $rootDirectory) {
+        parent::__construct($entityClass, $serializers);
         $this->root = $rootDirectory;
     }
 

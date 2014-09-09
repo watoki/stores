@@ -3,15 +3,15 @@ namespace watoki\stores\pdo;
 
 use watoki\stores\pdo\serializers\ObjectSerializer;
 
-abstract class Store extends \watoki\stores\Store {
+class Store extends \watoki\stores\Store {
 
     public static $CLASS = __CLASS__;
 
     /** @var Database */
     protected $db;
 
-    function __construct(SerializerRepository $serializers, Database $db) {
-        parent::__construct($serializers);
+    function __construct($entityClass, SerializerRepository $serializers, Database $db) {
+        parent::__construct($entityClass, $serializers);
         $this->db = $db;
     }
 
