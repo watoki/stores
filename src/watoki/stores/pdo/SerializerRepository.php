@@ -24,7 +24,7 @@ class SerializerRepository extends \watoki\stores\SerializerRepository {
         $this->setSerializer(self::TYPE_FLOAT, new FloatSerializer());
         $this->setSerializer(self::TYPE_BOOLEAN, new BooleanSerializer());
         $this->setSerializer(self::TYPE_STRING, new StringSerializer());
-        $this->setSerializer(get_class(new \DateTime()), new DateTimeSerializer());
+        $this->setSerializer('DateTime', new DateTimeSerializer());
     }
 
 } 
