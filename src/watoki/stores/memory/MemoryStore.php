@@ -14,11 +14,10 @@ class MemoryStore extends Store {
     }
 
     public function read($id) {
-        try {
-            return $this->memory[$id];
-        } catch (\Exception $e) {
+        if (!isset($this->memory[$id])) {
             throw new \Exception("Entity with ID [$id] does not exist.");
         }
+        return $this->memory[$id];
     }
 
     public function create($entity, $id = null) {
