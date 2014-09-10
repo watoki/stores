@@ -36,7 +36,7 @@ class FileStoreAdapter extends FileStore {
     }
 
     public function find($pattern) {
-        $pattern = str_replace(array('*', '?'), array('.*', '.'), $pattern);
+        $pattern = '^' . str_replace(array('*', '?'), array('.*', '.'), $pattern) . '$';
 
         $matches = array();
         foreach ($this->keys() as $key) {
