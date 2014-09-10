@@ -31,6 +31,22 @@ class FileStoreAdapter extends FileStore {
         return $this->store->delete($entity);
     }
 
+    public function keys() {
+        return $this->store->keys();
+    }
+
+    public function find($pattern) {
+        $pattern = str_replace(array('*', '?'), array('.*', '.'), $pattern);
+
+        $matches = array();
+        foreach ($this->keys() as $key) {
+            if (preg_match('?' . $pattern . '?', $key)) {
+                $matches[] = $key;
+            }
+        }
+        return $matches;
+    }
+
     public function exists($id) {
         try {
             $this->store->read($id);

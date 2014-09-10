@@ -29,7 +29,7 @@ class PdoStoreTest extends Specification {
     }
 
     function testCreate() {
-        $this->store->create(new lib\TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
         $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null") ' .
             'VALUES (:boolean, :integer, :float, :string, :dateTime, :null)' .
             ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01 00:00:00","null":null}');
@@ -47,7 +47,7 @@ class PdoStoreTest extends Specification {
     }
 
     function testCreateWithId() {
-        $this->store->create(new lib\TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 17);
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 17);
         $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "id") ' .
             'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :id)' .
             ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01 00:00:00","null":null,"id":17}');
@@ -79,7 +79,7 @@ class PdoStoreTest extends Specification {
     }
 
     function testUpdate() {
-        $entity = new lib\TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
         $this->store->create($entity);
 
         $entity->setString('Hello World');
@@ -127,10 +127,10 @@ class PdoStoreTest extends Specification {
     }
 
     function testReadBy() {
-        $this->store->create(new lib\TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
+        $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
 
-        /** @var \spec\watoki\stores\lib\TestEntity $entity */
+        /** @var TestEntity $entity */
         $entity = $this->store->readBy('integer', 42);
         $this->assertSame(42, $entity->getInteger());
         $this->assertSame('Hello', $entity->getString());
@@ -139,10 +139,10 @@ class PdoStoreTest extends Specification {
     }
 
     function testReadAll() {
-        $this->store->create(new lib\TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
-        $this->store->create(new lib\TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
+        $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
 
-        /** @var \spec\watoki\stores\lib\TestEntity[] $all */
+        /** @var TestEntity[] $all */
         $all = $this->store->readAll();
         $this->assertCount(2, $all);
 
@@ -150,7 +150,7 @@ class PdoStoreTest extends Specification {
     }
 
     function testReadAllBy() {
-        $this->store->create(new lib\TestEntity(true, 42, 1.6, 'Hello World', new \DateTime()));
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello World', new \DateTime()));
         $this->store->create(new TestEntity(false, 17, 1.6, 'Hello Me', new \DateTime()));
         $this->store->create(new TestEntity(false, 42, 1.6, 'Hello You', new \DateTime()));
 
@@ -160,6 +160,20 @@ class PdoStoreTest extends Specification {
 
         $this->assertLog('SELECT * FROM TestEntity WHERE "integer" = ? -- [42]');
     }
+    
+    function testListKeys() {
+        $e = new TestEntity(true, 42, 1.6, 'Hello World', new \DateTime());
+        $this->store->create($e, 42);
+        $this->store->create($e, 12);
+        $this->store->create($e, 6);
+
+        $keys = $this->store->keys();
+        sort($keys);
+
+        $this->assertEquals(array(6, 12, 42), $keys);
+    }
+    
+    ####################### SET-UP #####################
 
     /** @var PdoStore */
     private $store;

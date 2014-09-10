@@ -37,6 +37,13 @@ class MemoryStore extends Store {
         unset($this->memory[$entity->id]);
     }
 
+    /**
+     * @return array|mixed[] All stored keys
+     */
+    public function keys() {
+        return array_keys($this->memory);
+    }
+
     protected function createEntitySerializer() {
         return new Serializer();
     }

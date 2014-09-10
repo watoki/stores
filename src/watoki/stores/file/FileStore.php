@@ -9,7 +9,7 @@ class FileStore extends Store {
 
     public function __construct($entityClass, SerializerRepository $serializers, $rootDirectory) {
         parent::__construct($entityClass, $serializers);
-        $this->root = $rootDirectory;
+        $this->root = trim($rootDirectory, '\\/');
     }
 
     public function read($id) {
@@ -35,8 +35,34 @@ class FileStore extends Store {
         unlink($this->getFile($entity->id));
     }
 
+    public function keys() {
+        $files = $this->files($this->root);
+        sort($files);
+        return $files;
+    }
+
+    private function files($in) {
+        $files = array();
+        foreach (glob($in . '/*') as $file) {
+            if (is_dir($file)) {
+                $files = array_merge($files, $this->files($file));
+            } else {
+                $files[] = substr($file, strlen($this->root) + 1);
+            }
+        }
+        return $files;
+    }
+
     public function exists($id) {
         return file_exists($this->getFile($id));
+    }
+
+    public function find($pattern) {
+        $matches = array();
+        foreach (glob($this->getFile($pattern)) as $file) {
+            $matches[] = substr($file, strlen($this->root) + 1);
+        }
+        return $matches;
     }
 
     protected function createEntitySerializer() {

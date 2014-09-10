@@ -85,6 +85,14 @@ class PdoStore extends Store {
         $this->db->execute("DELETE FROM $tableName WHERE id = ?", array($entity->id));
     }
 
+    public function keys() {
+        $tableName = $this->getTableName();
+        $keys = $this->db->readAll("SELECT \"id\" FROM $tableName;");
+        return array_map(function ($k) {
+            return $k['id'];
+        }, $keys);
+    }
+
     public function readBy($column, $value) {
         $tableName = $this->getTableName();
         return $this->inflate($this->db->readOne("SELECT * FROM $tableName WHERE \"$column\" = ? LIMIT 1", array($value)));

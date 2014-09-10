@@ -17,14 +17,40 @@ abstract class Store {
         $serializers->setSerializer($this->getEntityClass(), $this->createEntitySerializer());
     }
 
-    abstract public function read($id);
+    /**
+     * @param mixed $key
+     * @return object Entity belonging given key
+     * @throw \Exception If no entity with given key exists
+     */
+    abstract public function read($key);
 
-    abstract public function create($entity, $id = null);
+    /**
+     * @param object $entity
+     * @param null|mixed $key If omitted, a key will be generated
+     * @return null
+     */
+    abstract public function create($entity, $key = null);
 
+    /**
+     * @param object $entity
+     * @return null
+     */
     abstract public function update($entity);
 
+    /**
+     * @param object $entity
+     * @return null
+     */
     abstract public function delete($entity);
 
+    /**
+     * @return array|mixed[] All stored keys
+     */
+    abstract public function keys();
+
+    /**
+     * @return Serializer
+     */
     abstract protected function createEntitySerializer();
 
     /**

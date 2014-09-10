@@ -6,7 +6,7 @@ use watoki\scrut\Specification;
 use watoki\stores\file\raw\File;
 use watoki\stores\file\SerializerRepository;
 use watoki\stores\file\FileStore;
-use watoki\stores\file\raw\Store as RawFileStore;
+use watoki\stores\file\raw\RawFileStore as RawFileStore;
 
 class FileStoreTest extends Specification {
 
@@ -69,6 +69,31 @@ class FileStoreTest extends Specification {
 
         $this->assertNotExists('here');
     }
+
+    function testKeys() {
+        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $this->store->create($entity, 'file');
+        $this->store->create($entity, 'some/file');
+        $this->store->create($entity, 'some/bar');
+        $this->store->create($entity, 'some/deeper/file');
+
+        $keys = $this->store->keys();
+
+        $this->assertEquals(array('file', 'some/bar', 'some/deeper/file', 'some/file'), $keys);
+    }
+
+    function testFind() {
+        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $this->store->create($entity, 'some/file.txt');
+        $this->store->create($entity, 'some/other.txt');
+        $this->store->create($entity, 'some/file.not');
+
+        $matches = $this->store->find('some/*.txt');
+
+        $this->assertEquals(array('some/file.txt', 'some/other.txt'), $matches);
+    }
+
+    ############################# SET-UP ##############################
 
     /** @var FileStore */
     private $store;
