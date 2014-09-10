@@ -57,14 +57,6 @@ class FileStore extends Store {
         return file_exists($this->getFile($id));
     }
 
-    public function find($pattern) {
-        $matches = array();
-        foreach (glob($this->getFile($pattern)) as $file) {
-            $matches[] = substr($file, strlen($this->root) + 1);
-        }
-        return $matches;
-    }
-
     protected function createEntitySerializer() {
         return new ObjectSerializer($this->getEntityClass(), $this->getSerializers());
     }

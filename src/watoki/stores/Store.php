@@ -54,6 +54,20 @@ abstract class Store {
     abstract protected function createEntitySerializer();
 
     /**
+     * @param string $pattern Regular expression
+     * @return array
+     */
+    public function findKeys($pattern) {
+        $matches = array();
+        foreach ($this->keys() as $key) {
+            if (preg_match($pattern, $key)) {
+                $matches[] = $key;
+            }
+        }
+        return $matches;
+    }
+
+    /**
      * @return string
      */
     protected function getEntityClass() {
