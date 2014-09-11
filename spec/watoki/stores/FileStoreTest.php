@@ -82,18 +82,6 @@ class FileStoreTest extends Specification {
         $this->assertEquals(array('file', 'some/bar', 'some/deeper/file', 'some/file'), $keys);
     }
 
-    function testFind() {
-        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
-        $this->store->create($entity, 'some/file.txt');
-        $this->store->create($entity, 'some/other.txt');
-        $this->store->create($entity, 'some/file.not');
-        $this->store->create($entity, 'some/this/too.txt');
-
-        $matches = $this->store->findKeys('#some/.*txt#');
-
-        $this->assertEquals(array('some/file.txt', 'some/other.txt', 'some/this/too.txt'), $matches);
-    }
-
     ############################# SET-UP ##############################
 
     /** @var FileStore */
