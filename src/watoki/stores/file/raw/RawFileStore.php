@@ -14,4 +14,12 @@ class RawFileStore extends FileStore {
         return new Serializer();
     }
 
+    /**
+     * @param string $id
+     * @return File
+     */
+    public function read($id) {
+        return parent::read($id);
+    }
+
 } 

@@ -10,17 +10,20 @@ class FileStoreAdapter extends FileStore {
     /** @var Store */
     private $store;
 
-    public function __construct(Store $store) {
+    private $root;
+
+    public function __construct(Store $store, $root = null) {
         parent::__construct($store->getEntityClass(), new SerializerRepository(), null);
         $this->store = $store;
+        $this->root = $root ? trim($root, '/') . '/' : '';
     }
 
     public function read($id) {
-        return $this->store->read($id);
+        return $this->store->read($this->root . $id);
     }
 
     public function create($entity, $id = null) {
-        return $this->store->create($entity, $id);
+        return $this->store->create($entity, $this->root . $id);
     }
 
     public function update($entity) {
@@ -37,7 +40,7 @@ class FileStoreAdapter extends FileStore {
 
     public function exists($id) {
         try {
-            $this->store->read($id);
+            $this->store->read($this->root . $id);
             return true;
         } catch (\Exception $e) {
             return false;

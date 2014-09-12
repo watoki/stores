@@ -5,6 +5,8 @@ use watoki\stores\Store;
 
 class FileStore extends Store {
 
+    public static $CLASS = __CLASS__;
+
     private $root;
 
     public function __construct($entityClass, SerializerRepository $serializers, $rootDirectory) {
