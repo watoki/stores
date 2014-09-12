@@ -1,11 +1,10 @@
 <?php
 namespace watoki\stores\adapter;
 
-use watoki\stores\file\FileStore;
-use watoki\stores\file\SerializerRepository;
+use watoki\stores\file\raw\RawFileStore;
 use watoki\stores\Store;
 
-class FileStoreAdapter extends FileStore {
+class FileStoreAdapter extends RawFileStore {
 
     /** @var Store */
     private $store;
@@ -13,7 +12,6 @@ class FileStoreAdapter extends FileStore {
     private $root;
 
     public function __construct(Store $store, $root = null) {
-        parent::__construct($store->getEntityClass(), new SerializerRepository(), null);
         $this->store = $store;
         $this->root = $root ? trim($root, '/') . '/' : '';
     }

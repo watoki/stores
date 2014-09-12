@@ -21,6 +21,7 @@ class FileStoreFixture extends Fixture {
         $this->store = new FileStoreAdapter($memory);
 
         $this->spec->factory->setProvider(FileStore::$CLASS, new FileStoreFixture_FileStoreProvider($memory));
+        $this->spec->factory->setProvider(RawFileStore::$CLASS, new FileStoreFixture_FileStoreProvider($memory));
     }
 
     public function givenAFile_WithContent($filename, $content) {

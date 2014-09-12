@@ -6,6 +6,8 @@ use watoki\stores\SerializerRepository;
 
 class RawFileStore extends FileStore {
 
+    public static $CLASS = __CLASS__;
+
     public function __construct(SerializerRepository $serializers, $rootDirectory) {
         parent::__construct(File::$CLASS, $serializers, $rootDirectory);
     }
