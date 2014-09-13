@@ -99,10 +99,15 @@ class FileStoreTest extends Specification {
     protected function setUp() {
         parent::setUp();
 
-        $this->tmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'watokistores';
+        $this->tmpDir = __DIR__ . DIRECTORY_SEPARATOR . '_tmp_';
         $this->clear($this->tmpDir);
-        mkdir($this->tmpDir);
+        mkdir($this->tmpDir, 0777, true);
         $this->store = new FileStore(TestEntity::$CLASS, new SerializerRepository(), $this->tmpDir);
+    }
+
+    protected function tearDown() {
+        $this->clear($this->tmpDir);
+        parent::tearDown();
     }
 
     private function assertExists($key) {
