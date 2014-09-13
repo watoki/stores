@@ -19,7 +19,7 @@ class FileStoreTest extends Specification {
             "integer": 42,
             "float": 1.6,
             "string": "Hello",
-            "dateTime": "2001-01-01T00:00:00+01:00",
+            "dateTime": "2001-01-01T00:00:00+00:00",
             "null": null,
             "nullDateTime": null,
             "array":{"some":[42, 73]}
@@ -61,7 +61,7 @@ class FileStoreTest extends Specification {
             "integer": 42,
             "float": 1.6,
             "string": "Hello back",
-            "dateTime": "2001-01-01T00:00:00+01:00",
+            "dateTime": "2001-01-01T00:00:00+00:00",
             "null": null,
             "nullDateTime": null,
             "array":{"foo":"bar","0":[42,73]}
@@ -103,6 +103,8 @@ class FileStoreTest extends Specification {
         $this->clear($this->tmpDir);
         mkdir($this->tmpDir, 0777, true);
         $this->store = new FileStore(TestEntity::$CLASS, new SerializerRepository(), $this->tmpDir);
+
+        date_default_timezone_set('UTC');
     }
 
     protected function tearDown() {
