@@ -18,21 +18,45 @@ class PdoStoreTest extends Specification {
             '"float" FLOAT NOT NULL, ' .
             '"string" TEXT(255) NOT NULL, ' .
             '"dateTime" TEXT(32) NOT NULL, ' .
-            '"null" TEXT(255), ' .
+            '"null" TEXT(255) DEFAULT NULL, ' .
+            '"nullDateTime" TEXT(32) DEFAULT NULL, ' .
+            '"array" TEXT(1024) NOT NULL, ' .
             'PRIMARY KEY ("id")' .
             '); -- []');
     }
 
+    function testCreatePartialTable() {
+        $this->store->createTable(array('boolean', 'dateTime', 'string'));
+        $this->assertLog('CREATE TABLE IF NOT EXISTS TestEntity (' .
+            '"id" INTEGER NOT NULL, ' .
+            '"boolean" INTEGER NOT NULL, ' .
+            '"string" TEXT(255) NOT NULL, ' .
+            '"dateTime" TEXT(32) NOT NULL, ' .
+            'PRIMARY KEY ("id")' .
+            '); -- []');
+    }
+
+    function testCreateColumn() {
+        $this->store->createTable(array('boolean'));
+        $this->store->createColumn('string');
+        $this->assertLog('ALTER TABLE TestEntity ADD COLUMN "string" TEXT(255) NOT NULL DEFAULT \'\' ' .
+            '-- []');
+    }
+
     function testDropTable() {
+        $this->store->createTable();
         $this->store->dropTable();
-        $this->assertLog('DROP TABLE TestEntity; -- []');
+        $this->assertLog('DROP TABLE TestEntity; ' .
+            '-- []');
     }
 
     function testCreate() {
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
-        $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null") ' .
-            'VALUES (:boolean, :integer, :float, :string, :dateTime, :null)' .
-            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01 00:00:00","null":null}');
+        $this->store->createTable();
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array("some" => array("here", "there"))));
+        $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array") ' .
+            'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :nullDateTime, :array)' .
+            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01 00:00:00","null":null,"nullDateTime":null,' .
+            '"array":"{\"some\":[\"here\",\"there\"]}"}');
         $this->assertTable(array(
             array(
                 'id' => "1",
@@ -41,16 +65,20 @@ class PdoStoreTest extends Specification {
                 'float' => "1.6",
                 'string' => "Hello",
                 'dateTime' => "2001-01-01 00:00:00",
-                'null' => null
+                'null' => null,
+                'nullDateTime' => null,
+                'array' => "{\"some\":[\"here\",\"there\"]}"
             )
         ));
     }
 
     function testCreateWithId() {
+        $this->store->createTable();
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 17);
-        $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "id") ' .
-            'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :id)' .
-            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01 00:00:00","null":null,"id":17}');
+        $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array", "id") ' .
+            'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :nullDateTime, :array, :id)' .
+            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01 00:00:00","null":null,"nullDateTime":null,' .
+            '"array":"[]","id":17}');
         $this->assertTable(array(
             array(
                 'id' => "17",
@@ -59,16 +87,20 @@ class PdoStoreTest extends Specification {
                 'float' => "1.6",
                 'string' => "Hello",
                 'dateTime' => "2001-01-01 00:00:00",
-                'null' => null
+                'null' => null,
+                'nullDateTime' => null,
+                'array' => "[]"
             )
         ));
     }
 
     function testRead() {
+        $this->store->createTable();
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
         /** @var TestEntity $entity */
         $entity = $this->store->read(1);
-        $this->assertLog('SELECT * FROM TestEntity WHERE "id" = ? LIMIT 1 -- [1]');
+        $this->assertLog('SELECT * FROM TestEntity WHERE "id" = ? LIMIT 1 ' .
+            '-- [1]');
 
         $this->assertSame(true, $entity->getBoolean());
         $this->assertSame(42, $entity->getInteger());
@@ -76,9 +108,12 @@ class PdoStoreTest extends Specification {
         $this->assertSame('Hello', $entity->getString());
         $this->assertEquals(new \DateTime('2001-01-01'), $entity->getDateTime());
         $this->assertNull($entity->getNull());
+        $this->assertNull($entity->getNullDateTime());
+        $this->assertEquals(1, $entity->id);
     }
 
     function testUpdate() {
+        $this->store->createTable();
         $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
         $this->store->create($entity);
 
@@ -91,7 +126,10 @@ class PdoStoreTest extends Specification {
             '"float" = :float, ' .
             '"string" = :string, ' .
             '"dateTime" = :dateTime, ' .
-            '"null" = :null WHERE id = :id ' .
+            '"null" = :null, ' .
+            '"nullDateTime" = :nullDateTime, ' .
+            '"array" = :array ' .
+            'WHERE id = :id ' .
             '-- {' .
             '"boolean":1,' .
             '"integer":42,' .
@@ -99,6 +137,8 @@ class PdoStoreTest extends Specification {
             '"string":"Hello World",' .
             '"dateTime":"2001-01-01 00:00:00",' .
             '"null":null,' .
+            '"nullDateTime":null,' .
+            '"array":"[]",' .
             '"id":1' .
             '}');
         $this->assertTable(array(
@@ -109,12 +149,15 @@ class PdoStoreTest extends Specification {
                 'float' => "1.6",
                 'string' => "Hello World",
                 'dateTime' => "2001-01-01 00:00:00",
-                'null' => null
+                'null' => null,
+                'nullDateTime' => null,
+                'array' => "[]"
             )
         ));
     }
 
     function testDelete() {
+        $this->store->createTable();
         $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
 
         $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
@@ -122,11 +165,13 @@ class PdoStoreTest extends Specification {
 
         $this->store->delete($entity);
 
-        $this->assertLog('DELETE FROM TestEntity WHERE id = ? -- [2]');
+        $this->assertLog('DELETE FROM TestEntity WHERE id = ? ' .
+            '-- [2]');
         $this->assertTableSize(1);
     }
 
     function testReadBy() {
+        $this->store->createTable();
         $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
 
@@ -135,10 +180,12 @@ class PdoStoreTest extends Specification {
         $this->assertSame(42, $entity->getInteger());
         $this->assertSame('Hello', $entity->getString());
 
-        $this->assertLog('SELECT * FROM TestEntity WHERE "integer" = ? LIMIT 1 -- [42]');
+        $this->assertLog('SELECT * FROM TestEntity WHERE "integer" = ? LIMIT 1 ' .
+            '-- [42]');
     }
 
     function testReadAll() {
+        $this->store->createTable();
         $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
 
@@ -146,10 +193,12 @@ class PdoStoreTest extends Specification {
         $all = $this->store->readAll();
         $this->assertCount(2, $all);
 
-        $this->assertLog('SELECT * FROM TestEntity -- []');
+        $this->assertLog('SELECT * FROM TestEntity ' .
+            '-- []');
     }
 
     function testReadAllBy() {
+        $this->store->createTable();
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello World', new \DateTime()));
         $this->store->create(new TestEntity(false, 17, 1.6, 'Hello Me', new \DateTime()));
         $this->store->create(new TestEntity(false, 42, 1.6, 'Hello You', new \DateTime()));
@@ -158,10 +207,12 @@ class PdoStoreTest extends Specification {
         $all = $this->store->readAllBy('integer', 42);
         $this->assertCount(2, $all);
 
-        $this->assertLog('SELECT * FROM TestEntity WHERE "integer" = ? -- [42]');
+        $this->assertLog('SELECT * FROM TestEntity WHERE "integer" = ? ' .
+            '-- [42]');
     }
     
     function testListKeys() {
+        $this->store->createTable();
         $e = new TestEntity(true, 42, 1.6, 'Hello World', new \DateTime());
         $this->store->create($e, 42);
         $this->store->create($e, 12);
@@ -185,8 +236,6 @@ class PdoStoreTest extends Specification {
         parent::setUp();
         $this->db = new TestDatabase(new \PDO('sqlite::memory:'));
         $this->store = new PdoStore(TestEntity::$CLASS, new SerializerRepository(), $this->db);
-
-        $this->store->createTable();
     }
 
     private function assertLog($string) {
@@ -194,10 +243,10 @@ class PdoStoreTest extends Specification {
     }
 
     private function assertTable($array) {
-        $this->assertEquals(json_encode($array), json_encode($this->db->readAll('select * from TestEntity;')));
+        $this->assertEquals(json_encode($array), json_encode($this->db->readAll('select * from ' . 'TestEntity;')));
     }
 
     private function assertTableSize($int) {
-        $this->assertCount($int, $this->db->readAll('select * from TestEntity;'));
+        $this->assertCount($int, $this->db->readAll('select * from ' . 'TestEntity;'));
     }
 }

@@ -26,12 +26,19 @@ class TestEntity {
     /** @var string|null */
     private $null;
 
-    function __construct($boolean, $integer, $float, $string, $dateTime) {
+    /** @var \DateTime|null */
+    private $nullDateTime;
+
+    /** @var array */
+    private $array;
+
+    function __construct($boolean, $integer, $float, $string, $dateTime, $array = array()) {
         $this->boolean = $boolean;
         $this->dateTime = $dateTime;
         $this->float = $float;
         $this->integer = $integer;
         $this->string = $string;
+        $this->array = $array;
     }
 
     /**
@@ -78,5 +85,26 @@ class TestEntity {
 
     public function setString($string) {
         $this->string = $string;
+    }
+
+    /**
+     * @return \DateTime|null
+     */
+    public function getNullDateTime() {
+        return $this->nullDateTime;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArray() {
+        return $this->array;
+    }
+
+    /**
+     * @param array $array
+     */
+    public function setArray($array) {
+        $this->array = $array;
     }
 }

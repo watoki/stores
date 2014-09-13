@@ -11,7 +11,8 @@ use watoki\stores\file\raw\RawFileStore as RawFileStore;
 class FileStoreTest extends Specification {
 
     function testCreate() {
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 'there/here');
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array('some' => array(42, 73))),
+            'there/here');
         $this->assertExists('there/here');
         $this->assertContent('there/here', '{
             "boolean": true,
@@ -19,7 +20,9 @@ class FileStoreTest extends Specification {
             "float": 1.6,
             "string": "Hello",
             "dateTime": "2001-01-01T00:00:00+01:00",
-            "null": null
+            "null": null,
+            "nullDateTime": null,
+            "array":{"some":[42, 73]}
         }');
     }
 
@@ -31,10 +34,10 @@ class FileStoreTest extends Specification {
 
     function testRead() {
         $dateTime = new \DateTime('2001-01-01');
-        $this->store->create(new lib\TestEntity(true, 42, 1.6, 'Hello', $dateTime), 'here');
+        $this->store->create(new lib\TestEntity(true, 42, 1.6, 'Hello', $dateTime), 'that/file');
 
         /** @var TestEntity $entity */
-        $entity = $this->store->read('here');
+        $entity = $this->store->read('that/file');
 
         $this->assertSame(true, $entity->getBoolean());
         $this->assertSame(42, $entity->getInteger());
@@ -42,6 +45,7 @@ class FileStoreTest extends Specification {
         $this->assertSame('Hello', $entity->getString());
         $this->assertEquals($dateTime->format('c'), $entity->getDateTime()->format('c'));
         $this->assertNull($entity->getNull());
+        $this->assertEquals('that/file', $entity->id);
     }
 
     function testUpdate() {
@@ -49,6 +53,7 @@ class FileStoreTest extends Specification {
         $this->store->create($entity, 'here');
 
         $entity->setString('Hello back');
+        $entity->setArray(array('foo' => 'bar', array(42, 73)));
         $this->store->update($entity);
 
         $this->assertContent('here', '{
@@ -57,7 +62,9 @@ class FileStoreTest extends Specification {
             "float": 1.6,
             "string": "Hello back",
             "dateTime": "2001-01-01T00:00:00+01:00",
-            "null": null
+            "null": null,
+            "nullDateTime": null,
+            "array":{"foo":"bar","0":[42,73]}
         }');
     }
 

@@ -3,10 +3,8 @@ namespace watoki\stores\pdo\serializers;
 
 use watoki\stores\pdo\Serializer;
 use watoki\stores\pdo\SerializerRepository;
-use watoki\factory\ClassResolver;
 
 class ObjectSerializer extends \watoki\stores\ObjectSerializer implements Serializer {
-
 
     /**
      * @return \watoki\stores\pdo\SerializerRepository
@@ -15,16 +13,28 @@ class ObjectSerializer extends \watoki\stores\ObjectSerializer implements Serial
         return parent::getSerializers();
     }
 
-    public function getDefinition() {
+    public function inflate($serialized) {
+        $entity = parent::inflate($serialized);
+        $entity->id = $serialized['id'];
+        return $entity;
+    }
+
+    public function getDefinition($properties = null) {
         $fields = array('id' => '"id" INTEGER NOT NULL');
         foreach ($this->getPersistedProperties() as $property) {
-            $fields[$property->getName()] = '"' . $property->getName() . '" ' . $this->getFieldDefinition($property);
+            if (!$properties || in_array($property->getName(), $properties)) {
+                $fields[$property->getName()] = $this->getPropertyDefinition($property->getName());
+            }
         }
 
         $definitions = array_values($fields);
         $definitions[] = 'PRIMARY KEY ("id")';
 
         return implode(', ', $definitions);
+    }
+
+    public function getPropertyDefinition($propertyName) {
+        return '"' . $propertyName . '" ' . $this->getFieldDefinition($this->class->getProperty($propertyName));
     }
 
     private function getFieldDefinition(\ReflectionProperty $property) {
@@ -36,6 +46,6 @@ class ObjectSerializer extends \watoki\stores\ObjectSerializer implements Serial
         }
 
         $definition = $this->getSerializers()->getSerializer($this->getTypeOfProperty($property))->getDefinition();
-        return $definition . (!$nullAllowed ? ' NOT NULL' : '');
+        return $definition . (!$nullAllowed ? ' NOT NULL' : ' DEFAULT NULL');
     }
 }

@@ -6,7 +6,7 @@ use watoki\factory\ClassResolver;
 class ObjectSerializer implements Serializer {
 
     /** @var \ReflectionClass */
-    private $class;
+    protected $class;
 
     /** @var SerializerRepository */
     private $serializers;
