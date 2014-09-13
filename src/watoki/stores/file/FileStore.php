@@ -11,7 +11,7 @@ class FileStore extends Store {
 
     public function __construct($entityClass, SerializerRepository $serializers, $rootDirectory) {
         parent::__construct($entityClass, $serializers);
-        $this->root = trim($rootDirectory, '\\/');
+        $this->root = rtrim($rootDirectory, '\\/');
     }
 
     public function read($id) {
