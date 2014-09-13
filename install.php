@@ -9,4 +9,5 @@ if (!file_exists('build/composer.phar')) {
     echo shell_exec("php build/install_composer.php --install-dir build");
 }
 
+echo "Installing dependencies...";
 echo shell_exec("php build/composer.phar install --dev");
