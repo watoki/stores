@@ -2,7 +2,7 @@
 namespace watoki\stores\file\raw;
 
 use watoki\stores\file\FileStore;
-use watoki\stores\SerializerRepository;
+use watoki\stores\file\SerializerRepository;
 
 class RawFileStore extends FileStore {
 
