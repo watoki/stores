@@ -45,7 +45,20 @@ class FileStoreTest extends Specification {
         $this->assertSame('Hello', $entity->getString());
         $this->assertEquals($dateTime->format('c'), $entity->getDateTime()->format('c'));
         $this->assertNull($entity->getNull());
-        $this->assertEquals('that/file', $entity->id);
+    }
+
+    function testGetKeyOfCreate() {
+        $entity = new lib\TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $this->store->create($entity, 'that/file/there');
+        $this->assertEquals('that/file/there', $this->store->getKey($entity));
+    }
+
+    function testGetKeyOfRead() {
+        $this->store->create(new lib\TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 'that/file/there');
+
+        /** @var TestEntity $entity */
+        $entity = $this->store->read('that/file/there');
+        $this->assertEquals('that/file/there', $this->store->getKey($entity));
     }
 
     function testUpdate() {

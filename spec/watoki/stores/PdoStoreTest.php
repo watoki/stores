@@ -109,7 +109,22 @@ class PdoStoreTest extends Specification {
         $this->assertEquals(new \DateTime('2001-01-01'), $entity->getDateTime());
         $this->assertNull($entity->getNull());
         $this->assertNull($entity->getNullDateTime());
-        $this->assertEquals(1, $entity->id);
+    }
+
+    function testGetKeyOfCreate() {
+        $this->store->createTable();
+        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $this->store->create($entity);
+        $this->assertEquals(1, $this->store->getKey($entity));
+    }
+
+    function testGetKeyOfRead() {
+        $this->store->createTable();
+        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
+        /** @var TestEntity $entity */
+        $entity = $this->store->read(1);
+
+        $this->assertEquals(1, $this->store->getKey($entity));
     }
 
     function testUpdate() {

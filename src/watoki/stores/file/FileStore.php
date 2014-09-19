@@ -15,26 +15,24 @@ class FileStore extends Store {
     }
 
     public function read($id) {
-        $entity = $this->inflate(file_get_contents($this->getFile($id)));
-        $entity->id = $id;
-        return $entity;
+        return $this->inflate(file_get_contents($this->getFile($id)), $id);
     }
 
     public function create($entity, $id = null) {
-        $entity->id = is_null($id) ? uniqid() : $id;
-        $file = $this->getFile($entity->id);
+        $id = $id ? : uniqid();
+        $file = $this->getFile($id);
         if (!file_exists(dirname($file))) {
             mkdir(dirname($file), 0777, true);
         }
-        file_put_contents($file, $this->serialize($entity));
+        file_put_contents($file, $this->serialize($entity, $id));
     }
 
     public function update($entity) {
-        $this->create($entity, $entity->id);
+        $this->create($entity, $this->getKey($entity));
     }
 
     public function delete($entity) {
-        unlink($this->getFile($entity->id));
+        unlink($this->getFile($this->getKey($entity)));
     }
 
     public function keys() {

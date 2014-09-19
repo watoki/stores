@@ -1,6 +1,7 @@
 <?php
 namespace watoki\stores\pdo;
 
+use watoki\collections\Set;
 use watoki\stores\pdo\serializers\ObjectSerializer;
 use watoki\stores\Store;
 
@@ -50,7 +51,7 @@ class PdoStore extends Store {
     }
 
     public function create($entity, $id = null) {
-        $columns = $this->serialize($entity);
+        $columns = $this->serialize($entity, $id);
 
         if (!is_null($id)) {
             $columns['id'] = $id;
@@ -66,7 +67,8 @@ class PdoStore extends Store {
 
         $tableName = $this->getTableName();
         $this->db->execute("INSERT INTO $tableName ($quotedColumns) VALUES ($preparedColumns)", $columns);
-        $entity->id = $this->db->getLastInsertedId();
+
+        $this->setKey($entity, $this->db->getLastInsertedId());
     }
 
     public function read($id) {
@@ -74,13 +76,13 @@ class PdoStore extends Store {
     }
 
     public function update($entity) {
-        $columns = $this->serialize($entity);
+        $columns = $this->serialize($entity, $this->getKey($entity));
 
         $preparedColumns = implode(', ', array_map(function ($key) {
             return '"' . $key . '" = :' . $key;
         }, array_keys($columns)));
 
-        $columns['id'] = $entity->id;
+        $columns['id'] = $this->getKey($entity);
 
         $tableName = $this->getTableName();
         $this->db->execute("UPDATE $tableName SET $preparedColumns WHERE id = :id", $columns);
@@ -88,7 +90,7 @@ class PdoStore extends Store {
 
     public function delete($entity) {
         $tableName = $this->getTableName();
-        $this->db->execute("DELETE FROM $tableName WHERE id = ?", array($entity->id));
+        $this->db->execute("DELETE FROM $tableName WHERE id = ?", array($this->getKey($entity)));
     }
 
     public function keys() {
@@ -101,7 +103,7 @@ class PdoStore extends Store {
 
     public function readBy($column, $value) {
         $tableName = $this->getTableName();
-        return $this->inflate($this->db->readOne("SELECT * FROM $tableName WHERE \"$column\" = ? LIMIT 1", array($value)));
+        return $this->inflateRow($this->db->readOne("SELECT * FROM $tableName WHERE \"$column\" = ? LIMIT 1", array($value)));
     }
 
     public function readAll() {
@@ -112,6 +114,18 @@ class PdoStore extends Store {
     public function readAllBy($column, $value) {
         $tableName = $this->getTableName();
         return $this->inflateAll($this->db->readAll("SELECT * FROM $tableName WHERE \"$column\" = ?", array($value)));
+    }
+
+    protected function inflateRow($row) {
+        return $this->inflate($row, $row['id']);
+    }
+
+    protected function inflateAll($rows, $collection = null) {
+        $entities = $collection ? : new Set();
+        foreach ($rows as $row) {
+            $entities[] = $this->inflate($row, $row['id']);
+        }
+        return $entities;
     }
 
     /**

@@ -1,8 +1,6 @@
 <?php
 namespace watoki\stores;
 
-use watoki\collections\Set;
-
 abstract class Store {
 
     /** @var SerializerRepository */
@@ -10,6 +8,12 @@ abstract class Store {
 
     /** @var string */
     private $entityClass;
+
+    /** @var array|object[] entities indexed by key */
+    private $entities = array();
+
+    /** @var array|mixed[] keys indexed by spl hash of entites */
+    private $keys = array();
 
     public function __construct($entityClass, SerializerRepository $serializers) {
         $this->entityClass = $entityClass;
@@ -54,6 +58,27 @@ abstract class Store {
     abstract protected function createEntitySerializer();
 
     /**
+     * @param object $entity
+     * @throws \Exception If the entity has never been saved nor read by this store
+     * @return mixed the key of the given entity
+     */
+    public function getKey($entity) {
+        $hash = spl_object_hash($entity);
+        if (!array_key_exists($hash, $this->keys)) {
+            throw new \Exception("Entity unknown to Store");
+        }
+        return $this->keys[$hash];
+    }
+
+    protected function setKey($entity, $key) {
+        if (!$key) {
+            return;
+        }
+        $this->keys[spl_object_hash($entity)] = $key;
+        $this->entities[$key] = $entity;
+    }
+
+    /**
      * @return string
      */
     protected function getEntityClass() {
@@ -67,20 +92,15 @@ abstract class Store {
         return $this->serializers;
     }
 
-    protected function serialize($entity) {
+    protected function serialize($entity, $key) {
+        $this->setKey($entity, $key);
         return $this->serializers->getSerializer($this->getEntityClass())->serialize($entity);
     }
 
-    protected function inflate($row) {
-        return $this->serializers->getSerializer($this->getEntityClass())->inflate($row);
-    }
-
-    protected function inflateAll($rows, $collection = null) {
-        $entities = $collection ? : new Set();
-        foreach ($rows as $row) {
-            $entities[] = $this->inflate($row);
-        }
-        return $entities;
+    protected function inflate($row, $key) {
+        $inflated = $this->serializers->getSerializer($this->getEntityClass())->inflate($row);
+        $this->setKey($inflated, $key);
+        return $inflated;
     }
 
 } 

@@ -17,7 +17,7 @@ class MemoryStore extends Store {
         if (!isset($this->memory[$id])) {
             throw new \Exception("Entity with ID [$id] does not exist.");
         }
-        return $this->memory[$id];
+        return $this->inflate($this->memory[$id], $id);
     }
 
     public function create($entity, $id = null) {
@@ -25,8 +25,7 @@ class MemoryStore extends Store {
             $this->currentId += 1;
             $id = $this->currentId;
         }
-        $entity->id = $id;
-        $this->memory[$id] = $entity;
+        $this->memory[$id] = $this->serialize($entity, $id);
     }
 
     public function update($entity) {
@@ -34,7 +33,7 @@ class MemoryStore extends Store {
     }
 
     public function delete($entity) {
-        unset($this->memory[$entity->id]);
+        unset($this->memory[$this->getKey($entity)]);
     }
 
     /**
