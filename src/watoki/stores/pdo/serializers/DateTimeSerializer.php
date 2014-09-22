@@ -14,9 +14,6 @@ class DateTimeSerializer implements Serializer {
     }
 
     public function inflate($serialized) {
-        if (!$serialized) {
-            return null;
-        }
         return new \DateTime($serialized);
     }
 
