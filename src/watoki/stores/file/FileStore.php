@@ -20,6 +20,9 @@ class FileStore extends Store {
     }
 
     public function read($id) {
+        if (!file_exists($this->getFile($id))) {
+            throw new \Exception("File [$id] does not exist.");
+        }
         return $this->inflate(file_get_contents($this->getFile($id)), $id);
     }
 
