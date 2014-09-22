@@ -12,6 +12,11 @@ class PdoStore extends Store {
     /** @var Database */
     protected $db;
 
+    /**
+     * @param $entityClass
+     * @param SerializerRepository $serializers <-
+     * @param Database $db <-
+     */
     function __construct($entityClass, SerializerRepository $serializers, Database $db) {
         parent::__construct($entityClass, $serializers);
         $this->db = $db;

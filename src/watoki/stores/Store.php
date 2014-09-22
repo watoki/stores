@@ -15,6 +15,10 @@ abstract class Store {
     /** @var array|mixed[] keys indexed by spl hash of entites */
     private $keys = array();
 
+    /**
+     * @param $entityClass
+     * @param SerializerRepository $serializers <-
+     */
     public function __construct($entityClass, SerializerRepository $serializers) {
         $this->entityClass = $entityClass;
         $this->serializers = $serializers;

@@ -115,7 +115,10 @@ class FileStoreTest extends Specification {
         $this->tmpDir = __DIR__ . DIRECTORY_SEPARATOR . '_tmp_';
         $this->clear($this->tmpDir);
         mkdir($this->tmpDir, 0777, true);
-        $this->store = new FileStore(TestEntity::$CLASS, new SerializerRepository(), $this->tmpDir);
+        $this->store = $this->factory->getInstance(FileStore::$CLASS, array(
+                'entityClass' => TestEntity::$CLASS,
+                'rootDirectory' => $this->tmpDir
+            ));
 
         date_default_timezone_set('UTC');
     }

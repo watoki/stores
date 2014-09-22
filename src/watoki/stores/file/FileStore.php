@@ -9,6 +9,11 @@ class FileStore extends Store {
 
     private $root;
 
+    /**
+     * @param $entityClass
+     * @param SerializerRepository $serializers <-
+     * @param $rootDirectory
+     */
     public function __construct($entityClass, SerializerRepository $serializers, $rootDirectory) {
         parent::__construct($entityClass, $serializers);
         $this->root = rtrim($rootDirectory, '\\/');

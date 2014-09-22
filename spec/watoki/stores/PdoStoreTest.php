@@ -1,12 +1,13 @@
 <?php
 namespace spec\watoki\stores;
 
-use spec\watoki\stores\lib\TestDatabase;
 use spec\watoki\stores\lib\TestEntity;
 use watoki\scrut\Specification;
-use watoki\stores\pdo\SerializerRepository;
 use watoki\stores\pdo\PdoStore;
 
+/**
+ * @property PdoDatabaseFixture db <-
+ */
 class PdoStoreTest extends Specification {
 
     function testCreateTable() {
@@ -244,24 +245,20 @@ class PdoStoreTest extends Specification {
     /** @var PdoStore */
     private $store;
 
-    /** @var \spec\watoki\stores\lib\TestDatabase */
-    private $db;
-
     protected function setUp() {
         parent::setUp();
-        $this->db = new TestDatabase(new \PDO('sqlite::memory:'));
-        $this->store = new PdoStore(TestEntity::$CLASS, new SerializerRepository(), $this->db);
+        $this->store = $this->factory->getInstance(PdoStore::$CLASS, array('entityClass' => TestEntity::$CLASS));
     }
 
     private function assertLog($string) {
-        $this->assertEquals($string, $this->db->log);
+        $this->assertEquals($string, $this->db->database->log);
     }
 
     private function assertTable($array) {
-        $this->assertEquals(json_encode($array), json_encode($this->db->readAll('select * from ' . 'TestEntity;')));
+        $this->assertEquals(json_encode($array), json_encode($this->db->database->readAll('select * from ' . 'TestEntity;')));
     }
 
     private function assertTableSize($int) {
-        $this->assertCount($int, $this->db->readAll('select * from ' . 'TestEntity;'));
+        $this->assertCount($int, $this->db->database->readAll('select * from ' . 'TestEntity;'));
     }
 }

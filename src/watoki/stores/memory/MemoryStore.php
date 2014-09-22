@@ -5,10 +5,16 @@ use watoki\stores\Store;
 
 class MemoryStore extends Store {
 
+    public static $CLASS = __CLASS__;
+
     private $memory = array();
 
     private $currentId = 0;
 
+    /**
+     * @param $entityClass
+     * @param SerializerRepository $serializers <-
+     */
     public function __construct($entityClass, SerializerRepository $serializers) {
         parent::__construct($entityClass, $serializers);
     }

@@ -8,6 +8,10 @@ class RawFileStore extends FileStore {
 
     public static $CLASS = __CLASS__;
 
+    /**
+     * @param SerializerRepository $serializers <-
+     * @param string $rootDirectory
+     */
     public function __construct(SerializerRepository $serializers, $rootDirectory) {
         parent::__construct(File::$CLASS, $serializers, $rootDirectory);
     }

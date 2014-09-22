@@ -11,6 +11,10 @@ class FileStoreAdapter extends RawFileStore {
 
     private $root;
 
+    /**
+     * @param Store $store
+     * @param null $root
+     */
     public function __construct(Store $store, $root = null) {
         $this->store = $store;
         $this->root = $root ? trim($root, '/') . '/' : '';
