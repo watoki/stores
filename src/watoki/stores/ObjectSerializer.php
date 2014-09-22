@@ -21,7 +21,11 @@ class ObjectSerializer implements Serializer {
         foreach ($this->getPersistedProperties() as $property) {
             $value = $property->getValue($inflated);
             $type = $this->serializers->getType($value);
-            $row[$property->getName()] = $this->serializers->getSerializer($type)->serialize($value);
+            if (is_null($value)) {
+                $row[$property->getName()] = null;
+            } else {
+                $row[$property->getName()] = $this->serializers->getSerializer($type)->serialize($value);
+            }
         }
         return $row;
     }
@@ -34,8 +38,12 @@ class ObjectSerializer implements Serializer {
             }
 
             $value = $serialized[$property->getName()];
-            $type = $this->getTypeOfProperty($property);
-            $property->setValue($inflated, $this->serializers->getSerializer($type)->inflate($value));
+            if (is_null($value)) {
+                $property->setValue($inflated, null);
+            } else {
+                $type = $this->getTypeOfProperty($property);
+                $property->setValue($inflated, $this->serializers->getSerializer($type)->inflate($value));
+            }
         }
         return $inflated;
     }
