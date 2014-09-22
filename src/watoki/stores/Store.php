@@ -78,6 +78,11 @@ abstract class Store {
         $this->entities[$key] = $entity;
     }
 
+    protected function removeKey($key) {
+        unset($this->keys[spl_object_hash($this->entities[$key])]);
+        unset($this->entities[$key]);
+    }
+
     /**
      * @return string
      */
