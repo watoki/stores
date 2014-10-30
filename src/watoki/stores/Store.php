@@ -62,6 +62,14 @@ abstract class Store {
     abstract protected function createEntitySerializer();
 
     /**
+     * @param mixed $key
+     * @return bool
+     */
+    public function hasKey($key) {
+        return in_array($key, $this->keys());
+    }
+
+    /**
      * @param object $entity
      * @throws \Exception If the entity has never been saved nor read by this store
      * @return mixed the key of the given entity
