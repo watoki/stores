@@ -1,7 +1,7 @@
 <?php
 namespace spec\watoki\stores;
 
-use watoki\factory\Provider;
+use watoki\factory\providers\CallbackProvider;
 use watoki\scrut\Fixture;
 use watoki\stores\adapter\FileStoreAdapter;
 use watoki\stores\file\FileStore;
@@ -20,7 +20,10 @@ class FileStoreFixture extends Fixture {
         $memory = new MemoryStore(File::$CLASS, new SerializerRepository());
         $this->store = new FileStoreAdapter($memory);
 
-        $provider = new FileStoreFixture_FileStoreProvider($memory);
+        $provider = new CallbackProvider(function($class, array $args) use ($memory) {
+            $root = isset($args['rootDirectory']) ? $args['rootDirectory'] : null;
+            return new FileStoreAdapter($memory, $root);
+        });
 
         $this->spec->factory->setProvider(FileStore::$CLASS, $provider);
         $this->spec->factory->setProvider(RawFileStore::$CLASS, $provider);
@@ -30,19 +33,4 @@ class FileStoreFixture extends Fixture {
         $this->store->create(new File($content), $filename);
     }
 
-}
-
-class FileStoreFixture_FileStoreProvider implements Provider {
-
-    /** @var MemoryStore */
-    private $memory;
-
-    function __construct(MemoryStore $memory) {
-        $this->memory = $memory;
-    }
-
-    public function provide($class, array $args = array()) {
-        $root = isset($args['rootDirectory']) ? $args['rootDirectory'] : null;
-        return new FileStoreAdapter($this->memory, $root);
-    }
 }
