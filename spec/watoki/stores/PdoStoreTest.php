@@ -21,7 +21,7 @@ class PdoStoreTest extends Specification {
             '"dateTime" TEXT(32) NOT NULL, ' .
             '"null" TEXT(255) DEFAULT NULL, ' .
             '"nullDateTime" TEXT(32) DEFAULT NULL, ' .
-            '"array" TEXT(1024) NOT NULL, ' .
+            '"array" TEXT NOT NULL, ' .
             'PRIMARY KEY ("id")' .
             '); -- []');
     }
