@@ -73,7 +73,7 @@ class PdoStore extends Store {
         $tableName = $this->getTableName();
         $this->db->execute("INSERT INTO $tableName ($quotedColumns) VALUES ($preparedColumns)", $columns);
 
-        $this->setKey($entity, $this->db->getLastInsertedId());
+        $this->setKey($entity, $id ? : $this->db->getLastInsertedId());
     }
 
     public function read($id) {

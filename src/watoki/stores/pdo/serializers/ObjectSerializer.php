@@ -15,7 +15,7 @@ class ObjectSerializer extends \watoki\stores\ObjectSerializer implements Serial
 
     public function inflate($serialized) {
         $entity = parent::inflate($serialized);
-        $entity->id = $serialized['id'];
+//        $entity->id = $serialized['id'];
         return $entity;
     }
 

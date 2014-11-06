@@ -14,6 +14,6 @@ class ArraySerializer implements Serializer {
     }
 
     public function getDefinition() {
-        return 'TEXT(1024)';
+        return 'TEXT';
     }
 } 

@@ -74,4 +74,8 @@ class Database {
         return intval($this->pdo->lastInsertId());
     }
 
+    public function close() {
+        $this->pdo = null;
+    }
+
 }
