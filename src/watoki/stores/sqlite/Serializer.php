@@ -1,5 +1,5 @@
 <?php
-namespace watoki\stores\pdo;
+namespace watoki\stores\sqlite;
 
 interface Serializer extends \watoki\stores\Serializer {
 

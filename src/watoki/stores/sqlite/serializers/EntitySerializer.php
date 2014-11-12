@@ -1,22 +1,21 @@
 <?php
-namespace watoki\stores\pdo\serializers;
+namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\pdo\Serializer;
-use watoki\stores\pdo\SerializerRepository;
+use watoki\stores\ObjectSerializer;
+use watoki\stores\sqlite\Serializer;
+use watoki\stores\sqlite\SerializerRepository;
 
-class ObjectSerializer extends \watoki\stores\ObjectSerializer implements Serializer {
+class EntitySerializer extends ObjectSerializer implements Serializer {
 
     /**
-     * @return \watoki\stores\pdo\SerializerRepository
+     * @return \watoki\stores\sqlite\SerializerRepository
      */
     protected function getSerializers() {
         return parent::getSerializers();
     }
 
     public function inflate($serialized) {
-        $entity = parent::inflate($serialized);
-//        $entity->id = $serialized['id'];
-        return $entity;
+        return parent::inflate($serialized);
     }
 
     public function getDefinition($properties = null) {

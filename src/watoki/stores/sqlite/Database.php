@@ -1,5 +1,5 @@
 <?php
-namespace watoki\stores\pdo;
+namespace watoki\stores\sqlite;
 
 class Database {
 

@@ -1,7 +1,7 @@
 <?php
 namespace spec\watoki\stores\lib;
 
-use watoki\stores\pdo\Database;
+use watoki\stores\sqlite\Database;
 
 class TestDatabase extends Database {
 

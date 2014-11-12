@@ -3,9 +3,9 @@ namespace spec\watoki\stores;
 
 use spec\watoki\stores\lib\TestDatabase;
 use watoki\scrut\Fixture;
-use watoki\stores\pdo\Database;
+use watoki\stores\sqlite\Database;
 
-class PdoDatabaseFixture extends Fixture {
+class SqliteDatabaseFixture extends Fixture {
 
     /**
      * @var TestDatabase

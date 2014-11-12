@@ -17,7 +17,7 @@ class RawFileStore extends FileStore {
     }
 
     protected function createEntitySerializer() {
-        return new Serializer();
+        return new FileSerializer();
     }
 
     /**

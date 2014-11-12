@@ -3,12 +3,12 @@ namespace spec\watoki\stores;
 
 use spec\watoki\stores\lib\TestEntity;
 use watoki\scrut\Specification;
-use watoki\stores\pdo\PdoStore;
+use watoki\stores\sqlite\SqliteStore;
 
 /**
- * @property PdoDatabaseFixture db <-
+ * @property SqliteDatabaseFixture db <-
  */
-class PdoStoreTest extends Specification {
+class SqliteStoreTest extends Specification {
 
     function testCreateTable() {
         $this->store->createTable();
@@ -242,12 +242,12 @@ class PdoStoreTest extends Specification {
     
     ####################### SET-UP #####################
 
-    /** @var PdoStore */
+    /** @var SqliteStore */
     private $store;
 
     protected function setUp() {
         parent::setUp();
-        $this->store = $this->factory->getInstance(PdoStore::$CLASS, array('entityClass' => TestEntity::$CLASS));
+        $this->store = $this->factory->getInstance(SqliteStore::$CLASS, array('entityClass' => TestEntity::$CLASS));
     }
 
     private function assertLog($string) {

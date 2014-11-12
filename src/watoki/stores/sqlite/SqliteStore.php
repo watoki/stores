@@ -1,11 +1,11 @@
 <?php
-namespace watoki\stores\pdo;
+namespace watoki\stores\sqlite;
 
 use watoki\collections\Set;
-use watoki\stores\pdo\serializers\ObjectSerializer;
+use watoki\stores\sqlite\serializers\EntitySerializer;
 use watoki\stores\Store;
 
-class PdoStore extends Store {
+class SqliteStore extends Store {
 
     public static $CLASS = __CLASS__;
 
@@ -30,7 +30,7 @@ class PdoStore extends Store {
     }
 
     protected function createEntitySerializer() {
-        return new ObjectSerializer($this->getEntityClass(), $this->getSerializers());
+        return new EntitySerializer($this->getEntityClass(), $this->getSerializers());
     }
 
     protected function getTableName() {
@@ -134,7 +134,7 @@ class PdoStore extends Store {
     }
 
     /**
-     * @return ObjectSerializer
+     * @return EntitySerializer
      */
     private function getSerializer() {
         return $this->getSerializers()->getSerializer($this->getEntityClass());

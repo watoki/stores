@@ -1,7 +1,7 @@
 <?php
-namespace watoki\stores\pdo\serializers;
+namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\pdo\Serializer;
+use watoki\stores\sqlite\Serializer;
 
 class DateTimeSerializer implements Serializer {
 
