@@ -38,7 +38,7 @@ class SqliteStore extends Store {
         return end($parts);
     }
 
-    public function createTable($properties = null) {
+    public function createTable(array $properties) {
         $tableName = $this->getTableName();
         $definition = $this->getSerializer()->getDefinition($properties);
         $this->db->execute("CREATE TABLE IF NOT EXISTS $tableName ($definition);");

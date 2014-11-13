@@ -11,7 +11,7 @@ use watoki\stores\sqlite\SqliteStore;
 class SqliteStoreTest extends Specification {
 
     function testCreateTable() {
-        $this->store->createTable();
+        $this->createFullTable();
         $this->assertLog('CREATE TABLE IF NOT EXISTS TestEntity (' .
             '"id" INTEGER NOT NULL, ' .
             '"boolean" INTEGER NOT NULL, ' .
@@ -45,14 +45,14 @@ class SqliteStoreTest extends Specification {
     }
 
     function testDropTable() {
-        $this->store->createTable();
+        $this->createFullTable();
         $this->store->dropTable();
         $this->assertLog('DROP TABLE TestEntity; ' .
             '-- []');
     }
 
     function testCreate() {
-        $this->store->createTable();
+        $this->createFullTable();
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array("some" => array("here", "there"))));
         $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array") ' .
             'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :nullDateTime, :array)' .
@@ -74,7 +74,7 @@ class SqliteStoreTest extends Specification {
     }
 
     function testCreateWithId() {
-        $this->store->createTable();
+        $this->createFullTable();
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 17);
         $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array", "id") ' .
             'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :nullDateTime, :array, :id)' .
@@ -96,7 +96,7 @@ class SqliteStoreTest extends Specification {
     }
 
     function testRead() {
-        $this->store->createTable();
+        $this->createFullTable();
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
         /** @var TestEntity $entity */
         $entity = $this->store->read(1);
@@ -113,14 +113,14 @@ class SqliteStoreTest extends Specification {
     }
 
     function testGetKeyOfCreate() {
-        $this->store->createTable();
+        $this->createFullTable();
         $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
         $this->store->create($entity);
         $this->assertEquals(1, $this->store->getKey($entity));
     }
 
     function testGetKeyOfRead() {
-        $this->store->createTable();
+        $this->createFullTable();
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
         /** @var TestEntity $entity */
         $entity = $this->store->read(1);
@@ -129,7 +129,7 @@ class SqliteStoreTest extends Specification {
     }
 
     function testUpdate() {
-        $this->store->createTable();
+        $this->createFullTable();
         $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
         $this->store->create($entity);
 
@@ -173,7 +173,7 @@ class SqliteStoreTest extends Specification {
     }
 
     function testDelete() {
-        $this->store->createTable();
+        $this->createFullTable();
         $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
 
         $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
@@ -187,7 +187,7 @@ class SqliteStoreTest extends Specification {
     }
 
     function testReadBy() {
-        $this->store->createTable();
+        $this->createFullTable();
         $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
 
@@ -201,7 +201,7 @@ class SqliteStoreTest extends Specification {
     }
 
     function testReadAll() {
-        $this->store->createTable();
+        $this->createFullTable();
         $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
 
@@ -214,7 +214,7 @@ class SqliteStoreTest extends Specification {
     }
 
     function testReadAllBy() {
-        $this->store->createTable();
+        $this->createFullTable();
         $this->store->create(new TestEntity(true, 42, 1.6, 'Hello World', new \DateTime()));
         $this->store->create(new TestEntity(false, 17, 1.6, 'Hello Me', new \DateTime()));
         $this->store->create(new TestEntity(false, 42, 1.6, 'Hello You', new \DateTime()));
@@ -228,7 +228,7 @@ class SqliteStoreTest extends Specification {
     }
     
     function testListKeys() {
-        $this->store->createTable();
+        $this->createFullTable();
         $e = new TestEntity(true, 42, 1.6, 'Hello World', new \DateTime());
         $this->store->create($e, 42);
         $this->store->create($e, 12);
@@ -260,5 +260,9 @@ class SqliteStoreTest extends Specification {
 
     private function assertTableSize($int) {
         $this->assertCount($int, $this->db->database->readAll('select * from ' . 'TestEntity;'));
+    }
+
+    private function createFullTable() {
+        $this->store->createTable(['id', 'boolean', 'integer', 'float', 'string', 'dateTime', 'null', 'nullDateTime', 'array']);
     }
 }
