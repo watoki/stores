@@ -1,31 +1,35 @@
 <?php
 namespace spec\watoki\stores;
 
-use spec\watoki\stores\lib\TestEntity;
+use spec\watoki\stores\fixtures\StoresTestEntity;
 use watoki\scrut\Specification;
+use watoki\stores\memory\MemorySerializerRegistry;
 use watoki\stores\memory\MemoryStore;
 
 class MemoryStoreTest extends Specification {
 
-    public function testGetKey() {
-        $entity = new lib\TestEntity(true, 42, 1.6, "Hi", new \DateTime());
-        $this->store->create($entity, 'myKey');
-        $this->assertEquals('myKey', $this->store->getKey($entity));
+    /** @var MemoryStore */
+    private $store;
+
+    protected function setUp() {
+        parent::setUp();
+        $this->store = new MemoryStore(StoresTestEntity::$CLASS, new MemorySerializerRegistry());
     }
 
     function testCreate() {
-        $entity1 = new lib\TestEntity(true, 42, 1.6, "Hi", new \DateTime());
+        $entity1 = new StoresTestEntity(true, 42, 1.6, "Hi", new \DateTime());
         $this->store->create($entity1);
-        $entity2 = new lib\TestEntity(true, 42, 1.6, "Hi", new \DateTime());
+
+        $entity2 = new StoresTestEntity(true, 42, 1.6, "Hi", new \DateTime());
         $this->store->create($entity2);
 
+        $this->assertNotEquals($this->store->getKey($entity1), $this->store->getKey($entity2));
         $this->assertSame($entity1, $this->store->read($this->store->getKey($entity1)));
         $this->assertSame($entity2, $this->store->read($this->store->getKey($entity2)));
-        $this->assertNotEquals($this->store->getKey($entity1), $this->store->getKey($entity2));
     }
 
     function testReadWrongId() {
-        $this->store->create(new lib\TestEntity(true, 42, 1.6, "Hi", new \DateTime()));
+        $this->store->create(new StoresTestEntity(true, 42, 1.6, "Hi", new \DateTime()));
 
         try {
             $this->store->read(12);
@@ -36,19 +40,11 @@ class MemoryStoreTest extends Specification {
     }
 
     function testDelete() {
-        $entity = new lib\TestEntity(true, 42, 1.6, "Hi", new \DateTime());
+        $entity = new StoresTestEntity(true, 42, 1.6, "Hi", new \DateTime());
         $this->store->create($entity);
-        $this->store->delete($entity);
+        $this->store->delete($this->store->getKey($entity));
         $this->assertEmpty($this->store->keys());
 
-    }
-
-    /** @var MemoryStore */
-    private $store;
-
-    protected function setUp() {
-        parent::setUp();
-        $this->store = $this->factory->getInstance(MemoryStore::$CLASS, array('entityClass' => TestEntity::$CLASS));
     }
 
 } 

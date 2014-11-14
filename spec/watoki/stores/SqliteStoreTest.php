@@ -1,71 +1,71 @@
 <?php
 namespace spec\watoki\stores;
 
-use spec\watoki\stores\lib\TestEntity;
+use spec\watoki\stores\fixtures\StoresTestDatabase;
+use spec\watoki\stores\fixtures\StoresTestEntity;
 use watoki\scrut\Specification;
+use watoki\stores\sqlite\serializers\CompositeSerializer;
+use watoki\stores\sqlite\serializers\IntegerSerializer;
+use watoki\stores\sqlite\serializers\StringSerializer;
+use watoki\stores\sqlite\SqliteSerializerRegistry;
 use watoki\stores\sqlite\SqliteStore;
 
-/**
- * @property SqliteDatabaseFixture db <-
- */
 class SqliteStoreTest extends Specification {
 
     function testCreateTable() {
         $this->createFullTable();
-        $this->assertLog('CREATE TABLE IF NOT EXISTS TestEntity (' .
-            '"id" INTEGER NOT NULL, ' .
+        $this->assertLogged('CREATE TABLE IF NOT EXISTS spec_watoki_stores_fixtures_StoresTestEntity (' .
+            '"id" INTEGER PRIMARY KEY AUTOINCREMENT, ' .
             '"boolean" INTEGER NOT NULL, ' .
             '"integer" INTEGER NOT NULL, ' .
             '"float" FLOAT NOT NULL, ' .
-            '"string" TEXT(255) NOT NULL, ' .
+            '"string" TEXT NOT NULL, ' .
             '"dateTime" TEXT(32) NOT NULL, ' .
-            '"null" TEXT(255) DEFAULT NULL, ' .
+            '"null" TEXT DEFAULT NULL, ' .
             '"nullDateTime" TEXT(32) DEFAULT NULL, ' .
-            '"array" TEXT NOT NULL, ' .
-            'PRIMARY KEY ("id")' .
+            '"array" TEXT NOT NULL'.
             '); -- []');
     }
 
     function testCreatePartialTable() {
         $this->store->createTable(array('boolean', 'dateTime', 'string'));
-        $this->assertLog('CREATE TABLE IF NOT EXISTS TestEntity (' .
-            '"id" INTEGER NOT NULL, ' .
+        $this->assertLogged('CREATE TABLE IF NOT EXISTS spec_watoki_stores_fixtures_StoresTestEntity (' .
+            '"id" INTEGER PRIMARY KEY AUTOINCREMENT, ' .
             '"boolean" INTEGER NOT NULL, ' .
-            '"string" TEXT(255) NOT NULL, ' .
-            '"dateTime" TEXT(32) NOT NULL, ' .
-            'PRIMARY KEY ("id")' .
+            '"string" TEXT NOT NULL, ' .
+            '"dateTime" TEXT(32) NOT NULL' .
             '); -- []');
     }
 
     function testCreateColumn() {
         $this->store->createTable(array('boolean'));
         $this->store->createColumn('string');
-        $this->assertLog('ALTER TABLE TestEntity ADD COLUMN "string" TEXT(255) NOT NULL DEFAULT \'\' ' .
+        $this->assertLogged('ALTER TABLE spec_watoki_stores_fixtures_StoresTestEntity ADD COLUMN "string" TEXT NOT NULL DEFAULT \'\' ' .
             '-- []');
     }
 
     function testDropTable() {
         $this->createFullTable();
         $this->store->dropTable();
-        $this->assertLog('DROP TABLE TestEntity; ' .
+        $this->assertLogged('DROP TABLE spec_watoki_stores_fixtures_StoresTestEntity; ' .
             '-- []');
     }
 
     function testCreate() {
         $this->createFullTable();
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array("some" => array("here", "there"))));
-        $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array") ' .
+        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array("some" => array("here", "there"))));
+        $this->assertLogged('INSERT INTO spec_watoki_stores_fixtures_StoresTestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array") ' .
             'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :nullDateTime, :array)' .
-            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01 00:00:00","null":null,"nullDateTime":null,' .
+            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01T00:00:00+00:00","null":null,"nullDateTime":null,' .
             '"array":"{\"some\":[\"here\",\"there\"]}"}');
-        $this->assertTable(array(
+        $this->assertTableEquals(array(
             array(
                 'id' => "1",
                 'boolean' => "1",
                 'integer' => "42",
                 'float' => "1.6",
                 'string' => "Hello",
-                'dateTime' => "2001-01-01 00:00:00",
+                'dateTime' => "2001-01-01T00:00:00+00:00",
                 'null' => null,
                 'nullDateTime' => null,
                 'array' => "{\"some\":[\"here\",\"there\"]}"
@@ -75,19 +75,19 @@ class SqliteStoreTest extends Specification {
 
     function testCreateWithId() {
         $this->createFullTable();
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 17);
-        $this->assertLog('INSERT INTO TestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array", "id") ' .
+        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 17);
+        $this->assertLogged('INSERT INTO spec_watoki_stores_fixtures_StoresTestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array", "id") ' .
             'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :nullDateTime, :array, :id)' .
-            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01 00:00:00","null":null,"nullDateTime":null,' .
+            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01T00:00:00+00:00","null":null,"nullDateTime":null,' .
             '"array":"[]","id":17}');
-        $this->assertTable(array(
+        $this->assertTableEquals(array(
             array(
                 'id' => "17",
                 'boolean' => "1",
                 'integer' => "42",
                 'float' => "1.6",
                 'string' => "Hello",
-                'dateTime' => "2001-01-01 00:00:00",
+                'dateTime' => "2001-01-01T00:00:00+00:00",
                 'null' => null,
                 'nullDateTime' => null,
                 'array' => "[]"
@@ -97,46 +97,33 @@ class SqliteStoreTest extends Specification {
 
     function testRead() {
         $this->createFullTable();
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
-        /** @var TestEntity $entity */
+        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
+
+        $this->initStore();
+        $this->createFullTable();
+        /** @var StoresTestEntity $entity */
         $entity = $this->store->read(1);
-        $this->assertLog('SELECT * FROM TestEntity WHERE "id" = ? LIMIT 1 ' .
+        $this->assertLogged('SELECT * FROM spec_watoki_stores_fixtures_StoresTestEntity WHERE "id" = ? LIMIT 1 ' .
             '-- [1]');
 
-        $this->assertSame(true, $entity->getBoolean());
-        $this->assertSame(42, $entity->getInteger());
-        $this->assertSame(1.6, $entity->getFloat());
-        $this->assertSame('Hello', $entity->getString());
-        $this->assertEquals(new \DateTime('2001-01-01'), $entity->getDateTime());
-        $this->assertNull($entity->getNull());
-        $this->assertNull($entity->getNullDateTime());
-    }
-
-    function testGetKeyOfCreate() {
-        $this->createFullTable();
-        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
-        $this->store->create($entity);
-        $this->assertEquals(1, $this->store->getKey($entity));
-    }
-
-    function testGetKeyOfRead() {
-        $this->createFullTable();
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
-        /** @var TestEntity $entity */
-        $entity = $this->store->read(1);
-
-        $this->assertEquals(1, $this->store->getKey($entity));
+        $this->assertSame(true, $entity->boolean);
+        $this->assertSame(42, $entity->integer);
+        $this->assertSame(1.6, $entity->float);
+        $this->assertSame('Hello', $entity->string);
+        $this->assertEquals('2001-01-01', $entity->dateTime->format('Y-m-d'));
+        $this->assertNull($entity->null);
+        $this->assertNull($entity->nullDateTime);
     }
 
     function testUpdate() {
         $this->createFullTable();
-        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
         $this->store->create($entity);
 
-        $entity->setString('Hello World');
+        $entity->string = 'Hello World';
         $this->store->update($entity);
 
-        $this->assertLog('UPDATE TestEntity SET ' .
+        $this->assertLogged('UPDATE spec_watoki_stores_fixtures_StoresTestEntity SET ' .
             '"boolean" = :boolean, ' .
             '"integer" = :integer, ' .
             '"float" = :float, ' .
@@ -151,20 +138,20 @@ class SqliteStoreTest extends Specification {
             '"integer":42,' .
             '"float":1.6,' .
             '"string":"Hello World",' .
-            '"dateTime":"2001-01-01 00:00:00",' .
+            '"dateTime":"2001-01-01T00:00:00+00:00",' .
             '"null":null,' .
             '"nullDateTime":null,' .
             '"array":"[]",' .
             '"id":1' .
             '}');
-        $this->assertTable(array(
+        $this->assertTableEquals(array(
             array(
                 'id' => "1",
                 'boolean' => "1",
                 'integer' => "42",
                 'float' => "1.6",
                 'string' => "Hello World",
-                'dateTime' => "2001-01-01 00:00:00",
+                'dateTime' => "2001-01-01T00:00:00+00:00",
                 'null' => null,
                 'nullDateTime' => null,
                 'array' => "[]"
@@ -174,62 +161,62 @@ class SqliteStoreTest extends Specification {
 
     function testDelete() {
         $this->createFullTable();
-        $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
+        $this->store->create(new StoresTestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
 
-        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
         $this->store->create($entity);
 
-        $this->store->delete($entity);
+        $this->store->delete($this->store->getKey($entity));
 
-        $this->assertLog('DELETE FROM TestEntity WHERE id = ? ' .
+        $this->assertLogged('DELETE FROM spec_watoki_stores_fixtures_StoresTestEntity WHERE id = ? ' .
             '-- [2]');
         $this->assertTableSize(1);
     }
 
     function testReadBy() {
         $this->createFullTable();
-        $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
+        $this->store->create(new StoresTestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
+        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
 
-        /** @var TestEntity $entity */
+        /** @var \spec\watoki\stores\fixtures\StoresTestEntity $entity */
         $entity = $this->store->readBy('integer', 42);
-        $this->assertSame(42, $entity->getInteger());
-        $this->assertSame('Hello', $entity->getString());
+        $this->assertSame(42, $entity->integer);
+        $this->assertSame('Hello', $entity->string);
 
-        $this->assertLog('SELECT * FROM TestEntity WHERE "integer" = ? LIMIT 1 ' .
+        $this->assertLogged('SELECT * FROM spec_watoki_stores_fixtures_StoresTestEntity WHERE "integer" = ? LIMIT 1 ' .
             '-- [42]');
     }
 
     function testReadAll() {
         $this->createFullTable();
-        $this->store->create(new TestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
+        $this->store->create(new StoresTestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
+        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
 
-        /** @var TestEntity[] $all */
+        /** @var \spec\watoki\stores\fixtures\StoresTestEntity[] $all */
         $all = $this->store->readAll();
         $this->assertCount(2, $all);
 
-        $this->assertLog('SELECT * FROM TestEntity ' .
+        $this->assertLogged('SELECT * FROM spec_watoki_stores_fixtures_StoresTestEntity ' .
             '-- []');
     }
 
     function testReadAllBy() {
         $this->createFullTable();
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello World', new \DateTime()));
-        $this->store->create(new TestEntity(false, 17, 1.6, 'Hello Me', new \DateTime()));
-        $this->store->create(new TestEntity(false, 42, 1.6, 'Hello You', new \DateTime()));
+        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello World', new \DateTime()));
+        $this->store->create(new StoresTestEntity(false, 17, 1.6, 'Hello Me', new \DateTime()));
+        $this->store->create(new StoresTestEntity(false, 42, 1.6, 'Hello You', new \DateTime()));
 
-        /** @var TestEntity[] $all */
+        /** @var StoresTestEntity[] $all */
         $all = $this->store->readAllBy('integer', 42);
         $this->assertCount(2, $all);
 
-        $this->assertLog('SELECT * FROM TestEntity WHERE "integer" = ? ' .
+        $this->assertLogged('SELECT * FROM spec_watoki_stores_fixtures_StoresTestEntity WHERE "integer" = ? ' .
             '-- [42]');
     }
-    
+
     function testListKeys() {
         $this->createFullTable();
-        $e = new TestEntity(true, 42, 1.6, 'Hello World', new \DateTime());
+        $e = new StoresTestEntity(true, 42, 1.6, 'Hello World', new \DateTime());
         $this->store->create($e, 42);
         $this->store->create($e, 12);
         $this->store->create($e, 6);
@@ -239,27 +226,108 @@ class SqliteStoreTest extends Specification {
 
         $this->assertEquals(array(6, 12, 42), $keys);
     }
-    
+
+    function testEmbeddedObjects() {
+        $embeddedSerializer = new CompositeSerializer(function ($columns) {
+            return new \DateTime('@' . $columns['date']);
+        });
+        $embeddedSerializer->defineChild('date', new IntegerSerializer(), function (\DateTime $d) {
+            return $d->getTimestamp();
+        });
+        $embeddedSerializer->defineChild('timezone', new StringSerializer(), function (\DateTime $d) {
+            return $d->getTimezone()->getName();
+        });
+
+        $this->entitySerializer->defineChild('nullDateTime', $embeddedSerializer, function (StoresTestEntity $entity) {
+            return $entity->nullDateTime;
+        }, function (StoresTestEntity $entity, $value) {
+            $entity->nullDateTime = $value;
+        });
+
+        $this->createFullTable();
+        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello World', new \DateTime('2002-03-04'));
+        $entity->nullDateTime = new \DateTime('2001-01-01');
+        $this->store->create($entity, 12);
+
+        $this->assertTableEquals(array(
+            array(
+                'id' => "12",
+                'boolean' => "1",
+                'integer' => "42",
+                'float' => "1.6",
+                'string' => "Hello World",
+                'dateTime' => '2002-03-04T00:00:00+00:00',
+                'null' => null,
+                'nullDateTime_date' => "978307200",
+                'nullDateTime_timezone' => 'UTC',
+                'array' => "[]"
+            )
+        ));
+
+        $this->initStore();
+        /** @var StoresTestEntity $read */
+        $read = $this->store->read(12);
+        $this->assertEquals('2001-01-01T00:00:00+00:00', $read->nullDateTime->format('c'));
+    }
+
     ####################### SET-UP #####################
 
     /** @var SqliteStore */
     private $store;
 
+    /** @var StoresTestDatabase */
+    private $database;
+
+    /** @var CompositeSerializer */
+    private $entitySerializer;
+
+    /** @var SqliteSerializerRegistry */
+    private $serializers;
+
     protected function setUp() {
         parent::setUp();
-        $this->store = $this->factory->getInstance(SqliteStore::$CLASS, array('entityClass' => TestEntity::$CLASS));
+        $this->database = new StoresTestDatabase(new \PDO('sqlite::memory:'));
+
+        $this->serializers = new SqliteSerializerRegistry();
+        $this->entitySerializer = new CompositeSerializer(function ($row) {
+            return new StoresTestEntity(
+                $row['boolean'],
+                $row['integer'],
+                $row['float'],
+                $row['string'],
+                $row['dateTime'],
+                $row['array']
+            );
+        });
+        $this->serializers->register(StoresTestEntity::$CLASS, $this->entitySerializer);
+
+        foreach (StoresTestEntity::serializers() as $child => $childSerializer) {
+            $this->entitySerializer->defineChild($child, $childSerializer,
+                function ($entity) use ($child) {
+                    return $entity->$child;
+                },
+                function ($entity, $value) use ($child) {
+                    $entity->$child = $value;
+                });
+        }
+
+        $this->initStore();
     }
 
-    private function assertLog($string) {
-        $this->assertEquals($string, $this->db->database->log);
+    private function initStore() {
+        $this->store = new SqliteStore(StoresTestEntity::$CLASS, $this->serializers, $this->database);
     }
 
-    private function assertTable($array) {
-        $this->assertEquals(json_encode($array), json_encode($this->db->database->readAll('select * from ' . 'TestEntity;')));
+    private function assertLogged($string) {
+        $this->assertEquals($string, $this->database->log);
+    }
+
+    private function assertTableEquals($array) {
+        $this->assertEquals(json_encode($array), json_encode($this->database->readAll('select * from ' . 'spec_watoki_stores_fixtures_StoresTestEntity;')));
     }
 
     private function assertTableSize($int) {
-        $this->assertCount($int, $this->db->database->readAll('select * from ' . 'TestEntity;'));
+        $this->assertCount($int, $this->database->readAll('select * from ' . 'spec_watoki_stores_fixtures_StoresTestEntity;'));
     }
 
     private function createFullTable() {

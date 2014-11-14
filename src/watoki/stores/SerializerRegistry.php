@@ -1,7 +1,7 @@
 <?php
 namespace watoki\stores;
 
-class SerializerRepository {
+class SerializerRegistry {
 
     const TYPE_STRING = 'string';
     const TYPE_NULL = 'null';
@@ -16,10 +16,10 @@ class SerializerRepository {
     private $serializers = array();
 
     function __construct() {
-        $this->setDefaultSerializers();
+        $this->registerDefaultSerializers();
     }
 
-    public function setSerializer($type, Serializer $serializer) {
+    public function register($type, Serializer $serializer) {
         $this->serializers[$type] = $serializer;
     }
 
@@ -30,6 +30,11 @@ class SerializerRepository {
         return $this->serializers[$type];
     }
 
+    /**
+     * @param $value
+     * @throws \Exception
+     * @return string
+     */
     public function getType($value) {
         if (is_object($value)) {
             return get_class($value);
@@ -54,7 +59,7 @@ class SerializerRepository {
         throw new \Exception('Could not determine type.');
     }
 
-    protected function setDefaultSerializers() {
+    protected function registerDefaultSerializers() {
     }
 
 } 

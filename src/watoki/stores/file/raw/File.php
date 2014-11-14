@@ -1,9 +1,6 @@
 <?php
 namespace watoki\stores\file\raw;
 
-/**
- * @property string id
- */
 class File {
 
     public static $CLASS = __CLASS__;

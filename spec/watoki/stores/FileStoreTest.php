@@ -1,18 +1,20 @@
 <?php
 namespace spec\watoki\stores;
 
-use spec\watoki\stores\lib\TestEntity;
+use spec\watoki\stores\fixtures\StoresTestEntity;
 use watoki\scrut\Specification;
 use watoki\stores\file\raw\File;
-use watoki\stores\file\SerializerRepository;
+use watoki\stores\file\FileSerializerRegistry;
 use watoki\stores\file\FileStore;
 use watoki\stores\file\raw\RawFileStore as RawFileStore;
+use watoki\stores\Serializer;
 
 class FileStoreTest extends Specification {
 
     function testCreate() {
-        $this->store->create(new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array('some' => array(42, 73))),
+        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array('some' => array(42, 73))),
             'there/here');
+
         $this->assertExists('there/here');
         $this->assertContent('there/here', '{
             "boolean": true,
@@ -27,46 +29,33 @@ class FileStoreTest extends Specification {
     }
 
     function testCreateRawFile() {
-        $this->store = new RawFileStore(new SerializerRepository(), $this->tmpDir);
+        $this->store = new RawFileStore(new FileSerializerRegistry(), $this->tmpDir);
         $this->store->create(new File('Some text'), 'here');
         $this->assertRawContent('here', 'Some text');
     }
 
     function testRead() {
         $dateTime = new \DateTime('2001-01-01');
-        $this->store->create(new lib\TestEntity(true, 42, 1.6, 'Hello', $dateTime), 'that/file');
+        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', $dateTime), 'that/file');
 
-        /** @var TestEntity $entity */
+        /** @var StoresTestEntity $entity */
         $entity = $this->store->read('that/file');
 
-        $this->assertSame(true, $entity->getBoolean());
-        $this->assertSame(42, $entity->getInteger());
-        $this->assertSame(1.6, $entity->getFloat());
-        $this->assertSame('Hello', $entity->getString());
-        $this->assertEquals($dateTime->format('c'), $entity->getDateTime()->format('c'));
-        $this->assertNull($entity->getNull());
-    }
-
-    function testGetKeyOfCreate() {
-        $entity = new lib\TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
-        $this->store->create($entity, 'that/file/there');
-        $this->assertEquals('that/file/there', $this->store->getKey($entity));
-    }
-
-    function testGetKeyOfRead() {
-        $this->store->create(new lib\TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 'that/file/there');
-
-        /** @var TestEntity $entity */
-        $entity = $this->store->read('that/file/there');
-        $this->assertEquals('that/file/there', $this->store->getKey($entity));
+        $this->assertSame(true, $entity->boolean);
+        $this->assertSame(42, $entity->integer);
+        $this->assertSame(1.6, $entity->float);
+        $this->assertSame('Hello', $entity->string);
+        $this->assertEquals($dateTime->format('c'), $entity->dateTime->format('c'));
+        $this->assertNull($entity->null);
     }
 
     function testUpdate() {
-        $entity = new lib\TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
         $this->store->create($entity, 'here');
 
-        $entity->setString('Hello back');
-        $entity->setArray(array('foo' => 'bar', array(42, 73)));
+        $entity->string = 'Hello back';
+        $entity->array = array('foo' => 'bar', array(42, 73));
+        $entity->nullDateTime = new \DateTime('2012-12-12 12:12:12');
         $this->store->update($entity);
 
         $this->assertContent('here', '{
@@ -76,22 +65,22 @@ class FileStoreTest extends Specification {
             "string": "Hello back",
             "dateTime": "2001-01-01T00:00:00+00:00",
             "null": null,
-            "nullDateTime": null,
+            "nullDateTime": "2012-12-12T12:12:12+00:00",
             "array":{"foo":"bar","0":[42,73]}
         }');
     }
 
     function testDelete() {
-        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
         $this->store->create($entity, 'here');
 
-        $this->store->delete($entity);
+        $this->store->delete('here');
 
         $this->assertNotExists('here');
     }
 
     function testKeys() {
-        $entity = new TestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
+        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
         $this->store->create($entity, 'file');
         $this->store->create($entity, 'some/file');
         $this->store->create($entity, 'some/bar');
@@ -115,10 +104,11 @@ class FileStoreTest extends Specification {
         $this->tmpDir = __DIR__ . DIRECTORY_SEPARATOR . '_tmp_';
         $this->clear($this->tmpDir);
         mkdir($this->tmpDir, 0777, true);
-        $this->store = $this->factory->getInstance(FileStore::$CLASS, array(
-                'entityClass' => TestEntity::$CLASS,
-                'rootDirectory' => $this->tmpDir
-            ));
+
+        $serializers = new FileSerializerRegistry();
+        $this->store = new FileStore(StoresTestEntity::$CLASS, $serializers, $this->tmpDir);
+
+        $serializers->register(StoresTestEntity::$CLASS, new FileStoreTest_TestEntityFileSerializer());
 
         date_default_timezone_set('UTC');
     }
@@ -154,5 +144,41 @@ class FileStoreTest extends Specification {
             }
         }
         @rmdir($dir);
+    }
+}
+
+class FileStoreTest_TestEntityFileSerializer implements Serializer {
+
+    /**
+     * @param StoresTestEntity $inflated
+     * @return array
+     */
+    public function serialize($inflated) {
+        return json_encode(array(
+            'boolean' => $inflated->boolean,
+            'integer' => $inflated->integer,
+            'float' => $inflated->float,
+            'string' => $inflated->string,
+            'dateTime' => $inflated->dateTime->format('c'),
+            'null' => $inflated->null,
+            'nullDateTime' => $inflated->nullDateTime ? $inflated->nullDateTime->format('c') : null,
+            'array' => $inflated->array
+        ));
+    }
+
+    /**
+     * @param array $serialized
+     * @return StoresTestEntity
+     */
+    public function inflate($serialized) {
+        $serialized = json_decode($serialized, true);
+        return new StoresTestEntity(
+            $serialized['boolean'],
+            $serialized['integer'],
+            $serialized['float'],
+            $serialized['string'],
+            $serialized['dateTime'],
+            $serialized['array']
+        );
     }
 }

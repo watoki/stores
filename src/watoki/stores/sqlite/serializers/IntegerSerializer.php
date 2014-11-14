@@ -1,9 +1,7 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\sqlite\Serializer;
-
-class IntegerSerializer implements Serializer {
+class IntegerSerializer extends ColumnSerializer {
 
     public function serialize($inflated) {
         return $inflated;
@@ -13,7 +11,7 @@ class IntegerSerializer implements Serializer {
         return intval($serialized);
     }
 
-    public function getDefinition() {
+    public function getColumnDefinition() {
         return 'INTEGER';
     }
 }

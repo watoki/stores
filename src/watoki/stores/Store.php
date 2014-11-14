@@ -3,66 +3,106 @@ namespace watoki\stores;
 
 abstract class Store {
 
-    /** @var SerializerRepository */
-    private $serializers;
-
-    /** @var string */
-    private $entityClass;
-
     /** @var array|object[] entities indexed by key */
     private $entities = array();
 
     /** @var array|mixed[] keys indexed by spl hash of entites */
     private $keys = array();
 
-    /**
-     * @param $entityClass
-     * @param SerializerRepository $serializers <-
-     */
-    public function __construct($entityClass, SerializerRepository $serializers) {
-        $this->entityClass = $entityClass;
-        $this->serializers = $serializers;
-        $serializers->setSerializer($this->getEntityClass(), $this->createEntitySerializer());
+    public function __construct() {
     }
 
     /**
-     * @param mixed $key
+     * @param object $entity
+     * @return mixed
+     * @throws \Exception
+     */
+    abstract protected function serialize($entity);
+
+    /**
+     * @param mixed $row
+     * @return object
+     * @throws \Exception
+     */
+    abstract protected function inflate($row);
+
+    /**
+     * @param object $entity
+     * @param null|string|int $key If omitted, a key will be generated
+     * @return void
+     */
+    public function create($entity, $key = null) {
+        if (!$key) {
+            $key = $this->generateKey($entity);
+        }
+        $this->setKey($entity, $key);
+        $this->_create($entity, $key);
+    }
+
+    /**
+     * @param object $entity
+     * @param string|int $key
+     * @return void
+     */
+    abstract protected function _create($entity, $key);
+
+    /**
+     * @param string|int $key
      * @return object Entity belonging given key
-     * @throw \Exception If no entity with given key exists
+     * @throw EntityNotFoundException If no entity with given key exists
      */
-    abstract public function read($key);
+    public function read($key) {
+        if (array_key_exists($key, $this->entities)) {
+            return $this->entities[$key];
+        }
+        $entity = $this->_read($key);
+        $this->setKey($entity, $key);
+        return $entity;
+    }
+
+    /**
+     * @param string|int $key
+     * @return object Entity belonging given key
+     * @throw EntityNotFoundException If no entity with given key exists
+     */
+    abstract protected function _read($key);
 
     /**
      * @param object $entity
-     * @param null|mixed $key If omitted, a key will be generated
-     * @return null
+     * @return void
      */
-    abstract public function create($entity, $key = null);
+    public function update($entity) {
+        $this->_update($entity);
+    }
 
     /**
      * @param object $entity
-     * @return null
+     * @return void
      */
-    abstract public function update($entity);
+    abstract protected function _update($entity);
 
     /**
-     * @param object $entity
-     * @return null
+     * @param string|int $key
+     * @return void
      */
-    abstract public function delete($entity);
+    public function delete($key) {
+        $this->removeKey($key);
+        $this->_delete($key);
+    }
 
     /**
-     * @return array|mixed[] All stored keys
+     * @param string|int $key
+     * @return void
+     */
+    abstract protected function _delete($key);
+
+    /**
+     * @return array|string[]|int[] All stored keys
      */
     abstract public function keys();
 
     /**
-     * @return Serializer
-     */
-    abstract protected function createEntitySerializer();
-
-    /**
-     * @param mixed $key
+     * @param string|int $key
      * @return bool
      */
     public function hasKey($key) {
@@ -72,7 +112,7 @@ abstract class Store {
     /**
      * @param object $entity
      * @throws \Exception If the entity has never been saved nor read by this store
-     * @return mixed the key of the given entity
+     * @return string|int the key of the given entity
      */
     public function getKey($entity) {
         $hash = spl_object_hash($entity);
@@ -82,10 +122,15 @@ abstract class Store {
         return $this->keys[$hash];
     }
 
+    /**
+     * @param object $entity
+     * @return string
+     */
+    protected function generateKey($entity) {
+        return uniqid(spl_object_hash($entity), true);
+    }
+
     protected function setKey($entity, $key) {
-        if (!$key) {
-            return;
-        }
         $this->keys[spl_object_hash($entity)] = $key;
         $this->entities[$key] = $entity;
     }
@@ -93,31 +138,6 @@ abstract class Store {
     protected function removeKey($key) {
         unset($this->keys[spl_object_hash($this->entities[$key])]);
         unset($this->entities[$key]);
-    }
-
-    /**
-     * @return string
-     */
-    protected function getEntityClass() {
-        return $this->entityClass;
-    }
-
-    /**
-     * @return SerializerRepository
-     */
-    protected function getSerializers() {
-        return $this->serializers;
-    }
-
-    protected function serialize($entity, $key) {
-        $this->setKey($entity, $key);
-        return $this->serializers->getSerializer($this->getEntityClass())->serialize($entity);
-    }
-
-    protected function inflate($row, $key) {
-        $inflated = $this->serializers->getSerializer($this->getEntityClass())->inflate($row);
-        $this->setKey($inflated, $key);
-        return $inflated;
     }
 
 } 

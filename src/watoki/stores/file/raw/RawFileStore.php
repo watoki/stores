@@ -2,22 +2,19 @@
 namespace watoki\stores\file\raw;
 
 use watoki\stores\file\FileStore;
-use watoki\stores\file\SerializerRepository;
+use watoki\stores\file\FileSerializerRegistry;
 
 class RawFileStore extends FileStore {
 
     public static $CLASS = __CLASS__;
 
     /**
-     * @param SerializerRepository $serializers <-
+     * @param FileSerializerRegistry $serializers <-
      * @param string $rootDirectory
      */
-    public function __construct(SerializerRepository $serializers, $rootDirectory) {
+    public function __construct(FileSerializerRegistry $serializers, $rootDirectory) {
         parent::__construct(File::$CLASS, $serializers, $rootDirectory);
-    }
-
-    protected function createEntitySerializer() {
-        return new FileSerializer();
+        $serializers->register(File::$CLASS, new FileSerializer());
     }
 
     /**

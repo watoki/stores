@@ -1,9 +1,10 @@
 <?php
 namespace watoki\stores\memory;
 
-use watoki\stores\Store;
+use watoki\stores\EntityNotFoundException;
+use watoki\stores\GeneralStore;
 
-class MemoryStore extends Store {
+class MemoryStore extends GeneralStore {
 
     public static $CLASS = __CLASS__;
 
@@ -13,33 +14,29 @@ class MemoryStore extends Store {
 
     /**
      * @param $entityClass
-     * @param SerializerRepository $serializers <-
+     * @param MemorySerializerRegistry $serializers <-
      */
-    public function __construct($entityClass, SerializerRepository $serializers) {
+    public function __construct($entityClass, MemorySerializerRegistry $serializers) {
         parent::__construct($entityClass, $serializers);
     }
 
-    public function read($id) {
+    protected function _read($id) {
         if (!isset($this->memory[$id])) {
-            throw new \Exception("Entity with ID [$id] does not exist.");
+            throw new EntityNotFoundException("Entity with ID [$id] does not exist.");
         }
         return $this->inflate($this->memory[$id], $id);
     }
 
-    public function create($entity, $id = null) {
-        if (is_null($id)) {
-            $this->currentId += 1;
-            $id = $this->currentId;
-        }
+    protected function _create($entity, $id) {
         $this->memory[$id] = $this->serialize($entity, $id);
     }
 
-    public function update($entity) {
+    protected function _update($entity) {
         // Nothing to do
     }
 
-    public function delete($entity) {
-        unset($this->memory[$this->getKey($entity)]);
+    protected function _delete($key) {
+        unset($this->memory[$key]);
     }
 
     /**
@@ -49,7 +46,13 @@ class MemoryStore extends Store {
         return array_keys($this->memory);
     }
 
-    protected function createEntitySerializer() {
-        return new Serializer();
+    /**
+     * @param object $entity
+     * @return int|string
+     */
+    protected function generateKey($entity) {
+        return $this->currentId++;
     }
+
+
 }

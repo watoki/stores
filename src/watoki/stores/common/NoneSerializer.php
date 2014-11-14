@@ -1,9 +1,9 @@
 <?php
-namespace watoki\stores\file;
+namespace watoki\stores\common;
 
 use watoki\stores\Serializer;
 
-class GenericSerializer implements Serializer {
+class NoneSerializer implements Serializer {
 
     public function serialize($inflated) {
         return $inflated;

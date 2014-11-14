@@ -1,5 +1,5 @@
 <?php
-namespace watoki\stores\file;
+namespace watoki\stores\common;
 
 use watoki\stores\Serializer;
 
@@ -10,10 +10,10 @@ class DateTimeSerializer implements Serializer {
      * @return string
      */
     public function serialize($inflated) {
-        return $inflated->format('c');
+        return $inflated ? $inflated->format('c') : null;
     }
 
     public function inflate($serialized) {
-        return new \DateTime($serialized);
+        return $serialized ? new \DateTime($serialized) : null;
     }
 }

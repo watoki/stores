@@ -1,9 +1,7 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\sqlite\Serializer;
-
-class FloatSerializer implements Serializer {
+class FloatSerializer extends ColumnSerializer {
 
     public function serialize($inflated) {
         return $inflated;
@@ -13,7 +11,7 @@ class FloatSerializer implements Serializer {
         return floatval($serialized);
     }
 
-    public function getDefinition() {
+    public function getColumnDefinition() {
         return 'FLOAT';
     }
 }

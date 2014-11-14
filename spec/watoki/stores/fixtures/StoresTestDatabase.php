@@ -1,9 +1,9 @@
 <?php
-namespace spec\watoki\stores\lib;
+namespace spec\watoki\stores\fixtures;
 
 use watoki\stores\sqlite\Database;
 
-class TestDatabase extends Database {
+class StoresTestDatabase extends Database {
 
     public $log;
 

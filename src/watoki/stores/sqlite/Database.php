@@ -15,6 +15,26 @@ class Database {
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
+    /**
+     * Closes the connection to the database
+     */
+    public function close() {
+        $this->pdo = null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLastInsertedId() {
+        return intval($this->pdo->lastInsertId());
+    }
+
+    /**
+     * @param string $sql
+     * @param array $variables
+     * @throws \PDOException If result is empty
+     * @return array
+     */
     public function readOne($sql, $variables = array()) {
         $result = $this->readAll($sql, $variables);
         if (empty($result)) {
@@ -23,6 +43,12 @@ class Database {
         return $result[0];
     }
 
+    /**
+     * @param string $sql
+     * @param array $variables
+     * @throws \PDOException
+     * @return array
+     */
     public function readAll($sql, $variables = array()) {
         try {
             return $this->doExecute($sql, $variables)->fetchAll(\PDO::FETCH_ASSOC);
@@ -32,6 +58,12 @@ class Database {
         }
     }
 
+    /**
+     * @param string $sql
+     * @param array $variables
+     * @throws \PDOException
+     * @return void
+     */
     public function execute($sql, $variables = array()) {
         try {
             $this->doExecute($sql, $variables);
@@ -52,6 +84,10 @@ class Database {
         return $sth;
     }
 
+    /**
+     * @param mixed $value
+     * @return string
+     */
     public function quote($value) {
         return $this->pdo->quote($value, $this->getParamTypeOf($value));
     }
@@ -68,14 +104,6 @@ class Database {
         } else {
             return \PDO::PARAM_STR;
         }
-    }
-
-    public function getLastInsertedId() {
-        return intval($this->pdo->lastInsertId());
-    }
-
-    public function close() {
-        $this->pdo = null;
     }
 
 }

@@ -1,5 +1,5 @@
 <?php
-namespace spec\watoki\stores;
+namespace spec\watoki\stores\fixtures;
 
 use watoki\factory\providers\CallbackProvider;
 use watoki\scrut\Fixture;
@@ -8,7 +8,7 @@ use watoki\stores\file\FileStore;
 use watoki\stores\file\raw\File;
 use watoki\stores\file\raw\RawFileStore;
 use watoki\stores\memory\MemoryStore;
-use watoki\stores\memory\SerializerRepository;
+use watoki\stores\memory\MemorySerializerRegistry;
 
 class FileStoreFixture extends Fixture {
 
@@ -17,7 +17,7 @@ class FileStoreFixture extends Fixture {
 
     public function setUp() {
         parent::setUp();
-        $memory = new MemoryStore(File::$CLASS, new SerializerRepository());
+        $memory = new MemoryStore(File::$CLASS, new MemorySerializerRegistry());
         $this->store = new FileStoreAdapter($memory);
 
         $provider = new CallbackProvider(function($class, array $args) use ($memory) {

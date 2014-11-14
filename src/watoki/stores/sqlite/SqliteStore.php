@@ -2,10 +2,9 @@
 namespace watoki\stores\sqlite;
 
 use watoki\collections\Set;
-use watoki\stores\sqlite\serializers\EntitySerializer;
-use watoki\stores\Store;
+use watoki\stores\GeneralStore;
 
-class SqliteStore extends Store {
+class SqliteStore extends GeneralStore {
 
     public static $CLASS = __CLASS__;
 
@@ -14,51 +13,73 @@ class SqliteStore extends Store {
 
     /**
      * @param $entityClass
-     * @param SerializerRepository $serializers <-
+     * @param SqliteSerializerRegistry $serializers <-
      * @param Database $db <-
      */
-    function __construct($entityClass, SerializerRepository $serializers, Database $db) {
+    function __construct($entityClass, SqliteSerializerRegistry $serializers, Database $db) {
         parent::__construct($entityClass, $serializers);
         $this->db = $db;
     }
 
     /**
-     * @return SerializerRepository
+     * @return SqliteSerializerRegistry
      */
     protected function getSerializers() {
         return parent::getSerializers();
     }
 
-    protected function createEntitySerializer() {
-        return new EntitySerializer($this->getEntityClass(), $this->getSerializers());
+    /**
+     * @return DefinedSerializer
+     */
+    protected function getSerializer() {
+        return $this->getSerializers()->getSerializer($this->getEntityType());
     }
 
+    /**
+     * @return string
+     */
     protected function getTableName() {
-        $parts = explode('\\', $this->getEntityClass());
-        return end($parts);
+        return str_replace('\\', '_', $this->getEntityType());
     }
 
     public function createTable(array $properties) {
-        $tableName = $this->getTableName();
-        $definition = $this->getSerializer()->getDefinition($properties);
-        $this->db->execute("CREATE TABLE IF NOT EXISTS $tableName ($definition);");
+        $definitions = $this->getSerializer()->getDefinition($properties);
+
+        if (!is_array($definitions)) {
+            throw new \LogicException("Definition of entity serializer must be array");
+        }
+
+        $fields = array('id' => '"id" INTEGER PRIMARY KEY AUTOINCREMENT');
+        foreach ($definitions as $property => $definition) {
+            $propertyName = $property;
+            if (strpos($property, '_') !== false) {
+                $propertyName = substr($property, 0, strpos($property, '_'));
+            }
+            if (in_array($propertyName, $properties)) {
+                $fields[$property] = '"' . $property . '" ' . $definition;
+            }
+        }
+
+        $definitions = implode(', ', array_values($fields));
+        $this->db->execute("CREATE TABLE IF NOT EXISTS {$this->getTableName()} ($definitions);");
     }
 
     public function createColumn($property, $default = null) {
-        $definition = $this->getSerializer()->getPropertyDefinition($property);
+        $definitions = $this->getSerializer()->getDefinition();
+        $definition = $definitions[$property];
+
         $quotedDefault = $this->db->quote($default);
-        $this->db->execute("ALTER TABLE {$this->getTableName()} ADD COLUMN $definition DEFAULT $quotedDefault");
+        $this->db->execute("ALTER TABLE {$this->getTableName()} ADD COLUMN \"$property\" $definition DEFAULT $quotedDefault");
     }
 
     public function dropTable() {
-        $tableName = $this->getTableName();
-        $this->db->execute("DROP TABLE $tableName;");
+        $this->db->execute("DROP TABLE {$this->getTableName()};");
     }
 
-    public function create($entity, $id = null) {
-        $columns = $this->serialize($entity, $id);
+    protected function _create($entity, $id) {
+        $columns = $this->serialize($entity);
 
-        if (!is_null($id)) {
+        if ($id) {
             $columns['id'] = $id;
         }
 
@@ -73,15 +94,21 @@ class SqliteStore extends Store {
         $tableName = $this->getTableName();
         $this->db->execute("INSERT INTO $tableName ($quotedColumns) VALUES ($preparedColumns)", $columns);
 
-        $this->setKey($entity, $id ? : $this->db->getLastInsertedId());
+        if (!$id) {
+            $this->setKey($entity, $this->db->getLastInsertedId());
+        }
     }
 
-    public function read($id) {
+    protected function generateKey($entity) {
+        return null;
+    }
+
+    protected function _read($id) {
         return $this->readBy('id', $id);
     }
 
-    public function update($entity) {
-        $columns = $this->serialize($entity, $this->getKey($entity));
+    protected function _update($entity) {
+        $columns = $this->serialize($entity);
 
         $preparedColumns = implode(', ', array_map(function ($key) {
             return '"' . $key . '" = :' . $key;
@@ -93,51 +120,37 @@ class SqliteStore extends Store {
         $this->db->execute("UPDATE $tableName SET $preparedColumns WHERE id = :id", $columns);
     }
 
-    public function delete($entity) {
-        $tableName = $this->getTableName();
-        $this->db->execute("DELETE FROM $tableName WHERE id = ?", array($this->getKey($entity)));
+    protected function _delete($key) {
+        $this->db->execute("DELETE FROM {$this->getTableName()} WHERE id = ?", array($key));
     }
 
     public function keys() {
-        $tableName = $this->getTableName();
-        $keys = $this->db->readAll("SELECT \"id\" FROM $tableName;");
         return array_map(function ($k) {
             return $k['id'];
-        }, $keys);
+        }, $this->db->readAll("SELECT \"id\" FROM {$this->getTableName()};"));
     }
 
     public function readBy($column, $value) {
-        $tableName = $this->getTableName();
-        return $this->inflateRow($this->db->readOne("SELECT * FROM $tableName WHERE \"$column\" = ? LIMIT 1", array($value)));
+        return $this->inflate(
+            $this->db->readOne("SELECT * FROM {$this->getTableName()} WHERE \"$column\" = ? LIMIT 1", array($value)));
     }
 
     public function readAll() {
-        $tableName = $this->getTableName();
-        return $this->inflateAll($this->db->readAll("SELECT * FROM $tableName"));
+        return $this->inflateAll(
+            $this->db->readAll("SELECT * FROM {$this->getTableName()}"));
     }
 
     public function readAllBy($column, $value) {
-        $tableName = $this->getTableName();
-        return $this->inflateAll($this->db->readAll("SELECT * FROM $tableName WHERE \"$column\" = ?", array($value)));
-    }
-
-    protected function inflateRow($row) {
-        return $this->inflate($row, $row['id']);
+        return $this->inflateAll(
+            $this->db->readAll("SELECT * FROM {$this->getTableName()} WHERE \"$column\" = ?", array($value)));
     }
 
     protected function inflateAll($rows, $collection = null) {
         $entities = $collection ? : new Set();
         foreach ($rows as $row) {
-            $entities[] = $this->inflate($row, $row['id']);
+            $entities[] = $this->inflate($row);
         }
         return $entities;
-    }
-
-    /**
-     * @return EntitySerializer
-     */
-    private function getSerializer() {
-        return $this->getSerializers()->getSerializer($this->getEntityClass());
     }
 
 }

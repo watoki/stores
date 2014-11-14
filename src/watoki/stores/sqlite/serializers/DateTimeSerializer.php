@@ -1,23 +1,25 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\sqlite\Serializer;
+class DateTimeSerializer extends ColumnSerializer {
 
-class DateTimeSerializer implements Serializer {
+    /** @var \watoki\stores\common\DateTimeSerializer */
+    private $serializer;
 
-    /**
-     * @param \DateTime $inflated
-     * @return string
-     */
+    function __construct($nullable = false) {
+        parent::__construct($nullable);
+        $this->serializer = new \watoki\stores\common\DateTimeSerializer();
+    }
+
     public function serialize($inflated) {
-        return $inflated->format('Y-m-d H:i:s');
+        return $this->serializer->serialize($inflated);
     }
 
     public function inflate($serialized) {
-        return new \DateTime($serialized);
+        return $this->serializer->inflate($serialized);
     }
 
-    public function getDefinition() {
+    protected function getColumnDefinition() {
         return 'TEXT(32)';
     }
 }
