@@ -1,7 +1,7 @@
 <?php
 namespace watoki\stores\memory;
 
-use watoki\stores\EntityNotFoundException;
+use watoki\stores\exception\EntityNotFoundException;
 use watoki\stores\GeneralStore;
 
 class MemoryStore extends GeneralStore {

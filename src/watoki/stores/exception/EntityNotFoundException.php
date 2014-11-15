@@ -1,5 +1,5 @@
 <?php
-namespace watoki\stores;
+namespace watoki\stores\exception;
 
 class EntityNotFoundException extends \Exception {
 
