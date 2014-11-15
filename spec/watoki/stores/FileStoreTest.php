@@ -3,10 +3,14 @@ namespace spec\watoki\stores;
 
 use spec\watoki\stores\fixtures\StoresTestEntity;
 use watoki\scrut\Specification;
+use watoki\stores\common\DateTimeSerializer;
+use watoki\stores\common\GenericSerializer;
 use watoki\stores\file\FileStore;
 use watoki\stores\file\raw\File;
 use watoki\stores\file\raw\RawFileStore as RawFileStore;
+use watoki\stores\file\JsonSerializer;
 use watoki\stores\Serializer;
+use watoki\stores\sqlite\serializers\StringSerializer;
 
 class FileStoreTest extends Specification {
 
@@ -88,6 +92,51 @@ class FileStoreTest extends Specification {
         $keys = $this->store->keys();
 
         $this->assertEquals(array('file', 'some/bar', 'some/deeper/file', 'some/file'), $keys);
+    }
+
+    function testGenericSerializer() {
+        $get = function ($name) {
+            return function ($object) use ($name) {
+                return $object->$name;
+            };
+        };
+        $set = function ($name) {
+            return function ($object, $value) use ($name) {
+                $object->$name = $value;
+            };
+        };
+
+        $innerSerializer = new GenericSerializer(function () { return new \StdClass(); });
+        $innerSerializer->defineChild('one', new StringSerializer(), $get('one'), $set('one'));
+        $innerSerializer->defineChild('two', new StringSerializer(), $get('two'), $set('two'));
+
+        $serializer = new JsonSerializer(function () { return new \StdClass(); });
+        $serializer->defineChild('string', new StringSerializer(), $get('string'), $set('string'));
+        $serializer->defineChild('date', new DateTimeSerializer(), $get('date'), $set('date'));
+        $serializer->defineChild('inner', $innerSerializer, $get('inner'), $set('inner'));
+
+        $this->store = new FileStore($serializer, $this->tmpDir);
+
+        $entity = new \StdClass();
+        $entity->string = "foo";
+        $entity->date = new \DateTime('2001-01-01');
+        $entity->inner = new \StdClass();
+        $entity->inner->one = 'uno';
+        $entity->inner->two = 'dos';
+
+        $this->store->create($entity, 'bar');
+
+        $this->assertContent('bar', '{
+            "string": "foo",
+            "date": "2001-01-01T00:00:00+00:00",
+            "inner":{
+                "one": "uno",
+                "two": "dos"
+            }
+        }');
+
+        $inflated = $this->store->read('bar');
+        $this->assertEquals($entity, $inflated);
     }
 
     ############################# SET-UP ##############################

@@ -1,7 +1,7 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\GenericSerializer;
+use watoki\stores\common\GenericSerializer;
 use watoki\stores\Serializer;
 use watoki\stores\sqlite\SqliteSerializer;
 

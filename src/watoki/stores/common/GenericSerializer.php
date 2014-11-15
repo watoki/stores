@@ -1,5 +1,7 @@
 <?php
-namespace watoki\stores;
+namespace watoki\stores\common;
+
+use watoki\stores\Serializer;
 
 class GenericSerializer implements Serializer {
 
