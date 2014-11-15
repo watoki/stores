@@ -21,10 +21,10 @@
         "watoki/scrut": "*"
     },
     "autoload": {
-        "psr-0": { "watoki\\stores": "src/" }
-    },
-    "autoload-dev": {
-        "psr-0": { "spec\\watoki\\stores": "" }
+        "psr-0": {
+            "watoki\\stores": "src/",
+            "spec\\watoki\\stores": ""
+        }
     },
     "minimum-stability": "dev"
 }
