@@ -257,8 +257,8 @@ class SqliteStoreTest extends Specification {
                 'string' => "Hello World",
                 'dateTime' => '2002-03-04T00:00:00+00:00',
                 'null' => null,
-                'nullDateTime_date' => "978307200",
-                'nullDateTime_timezone' => 'UTC',
+                'nullDateTime__date' => "978307200",
+                'nullDateTime__timezone' => 'UTC',
                 'array' => "[]"
             )
         ));

@@ -1,42 +1,31 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
+use watoki\stores\GenericSerializer;
+use watoki\stores\Serializer;
 use watoki\stores\sqlite\SqliteSerializer;
 
-class CompositeSerializer implements SqliteSerializer {
+class CompositeSerializer extends GenericSerializer implements SqliteSerializer {
 
-    /** @var array|SqliteSerializer[] */
-    private $serializers = array();
+    private static $SEPARATOR = '__';
 
-    /** @var array|callable[] */
-    private $getters = array();
-
-    /** @var array|callable[] */
-    private $setters = array();
-
-    /** @var callable */
-    private $creator;
-
-    /**
-     * @param callable $creator
-     */
-    public function __construct($creator) {
-        $this->creator = $creator;
-    }
+    /** @var SqliteSerializer[] */
+    private $serializers;
 
     /**
      * @param string $name
-     * @param SqliteSerializer $serializer
+     * @param SqliteSerializer|Serializer $serializer
      * @param callable $getter
-     * @param callable|null $setter
+     * @param null $setter
+     * @throws \InvalidArgumentException if $serializer is not a SqliteSerializer
      * @return $this
      */
-    public function defineChild($name, SqliteSerializer $serializer, $getter, $setter = null) {
+    public function defineChild($name, Serializer $serializer, $getter, $setter = null) {
+        if (!($serializer instanceof SqliteSerializer)) {
+            throw new \InvalidArgumentException('Serializer must implement [watoki\stores\sqlite\SqliteSerializer]');
+        }
         $this->serializers[$name] = $serializer;
-        $this->getters[$name] = $getter;
-        $this->setters[$name] = $setter ?: function () {
-        };
-        return $this;
+        return parent::defineChild($name, $serializer, $getter, $setter);
     }
 
     /**
@@ -50,7 +39,7 @@ class CompositeSerializer implements SqliteSerializer {
                 $definitions[$child] = $definition;
             } else {
                 foreach ($definition as $grandChild => $grandDefinition) {
-                    $definitions[$child . '_' . $grandChild] = $grandDefinition;
+                    $definitions[$child . self::$SEPARATOR . $grandChild] = $grandDefinition;
                 }
             }
         }
@@ -62,16 +51,12 @@ class CompositeSerializer implements SqliteSerializer {
      * @return array
      */
     public function serialize($inflated) {
-        $serialized = array();
-        foreach ($this->serializers as $child => $serializer) {
-            $value = call_user_func($this->getters[$child], $inflated);
-            $serializedValue = $serializer->serialize($value);
-
-            if (!is_array($serializedValue)) {
-                $serialized[$child] = $serializedValue;
-            } else {
-                foreach ($serializedValue as $grandChild => $grandValue) {
-                    $serialized[$child . '_' . $grandChild] = $grandValue;
+        $serialized = parent::serialize($inflated);
+        foreach ($serialized as $child => $serializedChild) {
+            if (is_array($serializedChild)) {
+                unset($serialized[$child]);
+                foreach ($serializedChild as $grandChild => $serializedGrandChild) {
+                    $serialized[$child . self::$SEPARATOR . $grandChild] = $serializedGrandChild;
                 }
             }
         }
@@ -83,24 +68,13 @@ class CompositeSerializer implements SqliteSerializer {
      * @return array
      */
     public function inflate($serialized) {
-        $object = call_user_func($this->creator, $serialized);
-
-        foreach ($this->serializers as $child => $serializer) {
-            $definition = $serializer->getDefinition();
-
-            if (!is_array($definition)) {
-                $serializedChild = $serialized[$child];
-            } else {
-                $serializedChild = array();
-                foreach ($serialized as $column => $value) {
-                    if (substr($column, 0, strlen($child) + 1) == $child . '_') {
-                        $serializedChild[substr($column, strlen($child) + 1)] = $value;
-                    }
-                }
+        foreach ($serialized as $child => $serializedChild) {
+            if (strpos($child, self::$SEPARATOR)) {
+                unset($serialized[$child]);
+                list($child, $grandChild) = explode(self::$SEPARATOR, $child, 2);
+                $serialized[$child][$grandChild] = $serializedChild;
             }
-            $inflatedChild = $serializer->inflate($serializedChild);
-            call_user_func($this->setters[$child], $object, $inflatedChild);
         }
-        return $object;
+        return parent::inflate($serialized);
     }
 }
