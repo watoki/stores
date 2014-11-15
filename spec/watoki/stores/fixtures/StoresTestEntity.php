@@ -1,7 +1,6 @@
 <?php
 namespace spec\watoki\stores\fixtures;
 
-use watoki\stores\SerializerRegistry;
 use watoki\stores\sqlite\serializers\ArraySerializer;
 use watoki\stores\sqlite\serializers\BooleanSerializer;
 use watoki\stores\sqlite\serializers\DateTimeSerializer;

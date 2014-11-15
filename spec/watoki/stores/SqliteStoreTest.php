@@ -7,14 +7,13 @@ use watoki\scrut\Specification;
 use watoki\stores\sqlite\serializers\CompositeSerializer;
 use watoki\stores\sqlite\serializers\IntegerSerializer;
 use watoki\stores\sqlite\serializers\StringSerializer;
-use watoki\stores\sqlite\SqliteSerializerRegistry;
 use watoki\stores\sqlite\SqliteStore;
 
 class SqliteStoreTest extends Specification {
 
     function testCreateTable() {
         $this->createFullTable();
-        $this->assertLogged('CREATE TABLE IF NOT EXISTS spec_watoki_stores_fixtures_StoresTestEntity (' .
+        $this->assertLogged('CREATE TABLE IF NOT EXISTS MyTable (' .
             '"id" INTEGER PRIMARY KEY AUTOINCREMENT, ' .
             '"boolean" INTEGER NOT NULL, ' .
             '"integer" INTEGER NOT NULL, ' .
@@ -29,7 +28,7 @@ class SqliteStoreTest extends Specification {
 
     function testCreatePartialTable() {
         $this->store->createTable(array('boolean', 'dateTime', 'string'));
-        $this->assertLogged('CREATE TABLE IF NOT EXISTS spec_watoki_stores_fixtures_StoresTestEntity (' .
+        $this->assertLogged('CREATE TABLE IF NOT EXISTS MyTable (' .
             '"id" INTEGER PRIMARY KEY AUTOINCREMENT, ' .
             '"boolean" INTEGER NOT NULL, ' .
             '"string" TEXT NOT NULL, ' .
@@ -40,21 +39,21 @@ class SqliteStoreTest extends Specification {
     function testCreateColumn() {
         $this->store->createTable(array('boolean'));
         $this->store->createColumn('string');
-        $this->assertLogged('ALTER TABLE spec_watoki_stores_fixtures_StoresTestEntity ADD COLUMN "string" TEXT NOT NULL DEFAULT \'\' ' .
+        $this->assertLogged('ALTER TABLE MyTable ADD COLUMN "string" TEXT NOT NULL DEFAULT \'\' ' .
             '-- []');
     }
 
     function testDropTable() {
         $this->createFullTable();
         $this->store->dropTable();
-        $this->assertLogged('DROP TABLE spec_watoki_stores_fixtures_StoresTestEntity; ' .
+        $this->assertLogged('DROP TABLE MyTable; ' .
             '-- []');
     }
 
     function testCreate() {
         $this->createFullTable();
         $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array("some" => array("here", "there"))));
-        $this->assertLogged('INSERT INTO spec_watoki_stores_fixtures_StoresTestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array") ' .
+        $this->assertLogged('INSERT INTO MyTable ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array") ' .
             'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :nullDateTime, :array)' .
             ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01T00:00:00+00:00","null":null,"nullDateTime":null,' .
             '"array":"{\"some\":[\"here\",\"there\"]}"}');
@@ -76,7 +75,7 @@ class SqliteStoreTest extends Specification {
     function testCreateWithId() {
         $this->createFullTable();
         $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 17);
-        $this->assertLogged('INSERT INTO spec_watoki_stores_fixtures_StoresTestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array", "id") ' .
+        $this->assertLogged('INSERT INTO MyTable ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array", "id") ' .
             'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :nullDateTime, :array, :id)' .
             ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01T00:00:00+00:00","null":null,"nullDateTime":null,' .
             '"array":"[]","id":17}');
@@ -103,7 +102,7 @@ class SqliteStoreTest extends Specification {
         $this->createFullTable();
         /** @var StoresTestEntity $entity */
         $entity = $this->store->read(1);
-        $this->assertLogged('SELECT * FROM spec_watoki_stores_fixtures_StoresTestEntity WHERE "id" = ? LIMIT 1 ' .
+        $this->assertLogged('SELECT * FROM MyTable WHERE "id" = ? LIMIT 1 ' .
             '-- [1]');
 
         $this->assertSame(true, $entity->boolean);
@@ -123,7 +122,7 @@ class SqliteStoreTest extends Specification {
         $entity->string = 'Hello World';
         $this->store->update($entity);
 
-        $this->assertLogged('UPDATE spec_watoki_stores_fixtures_StoresTestEntity SET ' .
+        $this->assertLogged('UPDATE MyTable SET ' .
             '"boolean" = :boolean, ' .
             '"integer" = :integer, ' .
             '"float" = :float, ' .
@@ -168,7 +167,7 @@ class SqliteStoreTest extends Specification {
 
         $this->store->delete($this->store->getKey($entity));
 
-        $this->assertLogged('DELETE FROM spec_watoki_stores_fixtures_StoresTestEntity WHERE id = ? ' .
+        $this->assertLogged('DELETE FROM MyTable WHERE id = ? ' .
             '-- [2]');
         $this->assertTableSize(1);
     }
@@ -183,7 +182,7 @@ class SqliteStoreTest extends Specification {
         $this->assertSame(42, $entity->integer);
         $this->assertSame('Hello', $entity->string);
 
-        $this->assertLogged('SELECT * FROM spec_watoki_stores_fixtures_StoresTestEntity WHERE "integer" = ? LIMIT 1 ' .
+        $this->assertLogged('SELECT * FROM MyTable WHERE "integer" = ? LIMIT 1 ' .
             '-- [42]');
     }
 
@@ -196,7 +195,7 @@ class SqliteStoreTest extends Specification {
         $all = $this->store->readAll();
         $this->assertCount(2, $all);
 
-        $this->assertLogged('SELECT * FROM spec_watoki_stores_fixtures_StoresTestEntity ' .
+        $this->assertLogged('SELECT * FROM MyTable ' .
             '-- []');
     }
 
@@ -210,7 +209,7 @@ class SqliteStoreTest extends Specification {
         $all = $this->store->readAllBy('integer', 42);
         $this->assertCount(2, $all);
 
-        $this->assertLogged('SELECT * FROM spec_watoki_stores_fixtures_StoresTestEntity WHERE "integer" = ? ' .
+        $this->assertLogged('SELECT * FROM MyTable WHERE "integer" = ? ' .
             '-- [42]');
     }
 
@@ -281,14 +280,10 @@ class SqliteStoreTest extends Specification {
     /** @var CompositeSerializer */
     private $entitySerializer;
 
-    /** @var SqliteSerializerRegistry */
-    private $serializers;
-
     protected function setUp() {
         parent::setUp();
         $this->database = new StoresTestDatabase(new \PDO('sqlite::memory:'));
 
-        $this->serializers = new SqliteSerializerRegistry();
         $this->entitySerializer = new CompositeSerializer(function ($row) {
             return new StoresTestEntity(
                 $row['boolean'],
@@ -299,7 +294,6 @@ class SqliteStoreTest extends Specification {
                 $row['array']
             );
         });
-        $this->serializers->register(StoresTestEntity::$CLASS, $this->entitySerializer);
 
         foreach (StoresTestEntity::serializers() as $child => $childSerializer) {
             $this->entitySerializer->defineChild($child, $childSerializer,
@@ -315,7 +309,7 @@ class SqliteStoreTest extends Specification {
     }
 
     private function initStore() {
-        $this->store = new SqliteStore(StoresTestEntity::$CLASS, $this->serializers, $this->database);
+        $this->store = new SqliteStore($this->entitySerializer, 'MyTable', $this->database);
     }
 
     private function assertLogged($string) {
@@ -323,11 +317,11 @@ class SqliteStoreTest extends Specification {
     }
 
     private function assertTableEquals($array) {
-        $this->assertEquals(json_encode($array), json_encode($this->database->readAll('select * from ' . 'spec_watoki_stores_fixtures_StoresTestEntity;')));
+        $this->assertEquals(json_encode($array), json_encode($this->database->readAll('select * from ' . 'MyTable;')));
     }
 
     private function assertTableSize($int) {
-        $this->assertCount($int, $this->database->readAll('select * from ' . 'spec_watoki_stores_fixtures_StoresTestEntity;'));
+        $this->assertCount($int, $this->database->readAll('select * from ' . 'MyTable;'));
     }
 
     private function createFullTable() {

@@ -11,39 +11,33 @@ class SqliteStore extends GeneralStore {
     /** @var Database */
     protected $db;
 
+    /** @var \watoki\stores\sqlite\SqliteSerializer */
+    private $serializer;
+
+    /** @var string */
+    private $tableName;
+
     /**
-     * @param $entityClass
-     * @param SqliteSerializerRegistry $serializers <-
+     * @param SqliteSerializer $serializer
+     * @param string $tableName
      * @param Database $db <-
      */
-    function __construct($entityClass, SqliteSerializerRegistry $serializers, Database $db) {
-        parent::__construct($entityClass, $serializers);
+    function __construct(SqliteSerializer $serializer, $tableName, Database $db) {
+        parent::__construct($serializer);
+        $this->serializer = $serializer;
+        $this->tableName = $tableName;
         $this->db = $db;
-    }
-
-    /**
-     * @return SqliteSerializerRegistry
-     */
-    protected function getSerializers() {
-        return parent::getSerializers();
-    }
-
-    /**
-     * @return SqliteSerializer
-     */
-    protected function getSerializer() {
-        return $this->getSerializers()->getSerializer($this->getEntityType());
     }
 
     /**
      * @return string
      */
     protected function getTableName() {
-        return str_replace('\\', '_', $this->getEntityType());
+        return $this->tableName;
     }
 
     public function createTable(array $properties) {
-        $definitions = $this->getSerializer()->getDefinition($properties);
+        $definitions = $this->serializer->getDefinition($properties);
 
         if (!is_array($definitions)) {
             throw new \LogicException("Definition of entity serializer must be array");
@@ -65,7 +59,7 @@ class SqliteStore extends GeneralStore {
     }
 
     public function createColumn($property, $default = null) {
-        $definitions = $this->getSerializer()->getDefinition();
+        $definitions = $this->serializer->getDefinition();
         $definition = $definitions[$property];
 
         $quotedDefault = $this->db->quote($default);

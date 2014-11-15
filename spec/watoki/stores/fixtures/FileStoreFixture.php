@@ -8,7 +8,6 @@ use watoki\stores\file\FileStore;
 use watoki\stores\file\raw\File;
 use watoki\stores\file\raw\RawFileStore;
 use watoki\stores\memory\MemoryStore;
-use watoki\stores\memory\MemorySerializerRegistry;
 
 class FileStoreFixture extends Fixture {
 
@@ -17,7 +16,7 @@ class FileStoreFixture extends Fixture {
 
     public function setUp() {
         parent::setUp();
-        $memory = new MemoryStore(File::$CLASS, new MemorySerializerRegistry());
+        $memory = new MemoryStore();
         $this->store = new FileStoreAdapter($memory);
 
         $provider = new CallbackProvider(function($class, array $args) use ($memory) {

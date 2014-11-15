@@ -3,6 +3,7 @@ namespace watoki\stores\file;
 
 use watoki\stores\exception\EntityNotFoundException;
 use watoki\stores\GeneralStore;
+use watoki\stores\Serializer;
 
 class FileStore extends GeneralStore {
 
@@ -11,12 +12,11 @@ class FileStore extends GeneralStore {
     private $root;
 
     /**
-     * @param $entityClass
-     * @param FileSerializerRegistry $serializers <-
+     * @param Serializer $serializer
      * @param $rootDirectory
      */
-    public function __construct($entityClass, FileSerializerRegistry $serializers, $rootDirectory) {
-        parent::__construct($entityClass, $serializers);
+    public function __construct(Serializer $serializer, $rootDirectory) {
+        parent::__construct($serializer);
         $this->root = rtrim($rootDirectory, '\\/');
     }
 

@@ -3,9 +3,8 @@ namespace spec\watoki\stores;
 
 use spec\watoki\stores\fixtures\StoresTestEntity;
 use watoki\scrut\Specification;
-use watoki\stores\file\raw\File;
-use watoki\stores\file\FileSerializerRegistry;
 use watoki\stores\file\FileStore;
+use watoki\stores\file\raw\File;
 use watoki\stores\file\raw\RawFileStore as RawFileStore;
 use watoki\stores\Serializer;
 
@@ -29,7 +28,7 @@ class FileStoreTest extends Specification {
     }
 
     function testCreateRawFile() {
-        $this->store = new RawFileStore(new FileSerializerRegistry(), $this->tmpDir);
+        $this->store = new RawFileStore($this->tmpDir);
         $this->store->create(new File('Some text'), 'here');
         $this->assertRawContent('here', 'Some text');
     }
@@ -105,10 +104,7 @@ class FileStoreTest extends Specification {
         $this->clear($this->tmpDir);
         mkdir($this->tmpDir, 0777, true);
 
-        $serializers = new FileSerializerRegistry();
-        $this->store = new FileStore(StoresTestEntity::$CLASS, $serializers, $this->tmpDir);
-
-        $serializers->register(StoresTestEntity::$CLASS, new FileStoreTest_TestEntityFileSerializer());
+        $this->store = new FileStore(new FileStoreTest_TestEntityFileSerializer(), $this->tmpDir);
 
         date_default_timezone_set('UTC');
     }

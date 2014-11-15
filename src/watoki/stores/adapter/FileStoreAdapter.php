@@ -25,15 +25,15 @@ class FileStoreAdapter extends RawFileStore {
     }
 
     public function create($entity, $id = null) {
-        return $this->store->create($entity, $this->root . $id);
+        $this->store->create($entity, $this->root . $id);
     }
 
     public function update($entity) {
-        return $this->store->update($entity);
+        $this->store->update($entity);
     }
 
     public function delete($entity) {
-        return $this->store->delete($entity);
+        $this->store->delete($entity);
     }
 
     public function keys() {

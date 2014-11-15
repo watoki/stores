@@ -2,7 +2,6 @@
 namespace watoki\stores\sqlite\serializers;
 
 use watoki\stores\sqlite\SqliteSerializer;
-use watoki\stores\sqlite\SqliteSerializerRegistry;
 
 class CompositeSerializer implements SqliteSerializer {
 
