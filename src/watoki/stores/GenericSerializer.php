@@ -32,8 +32,7 @@ class GenericSerializer implements Serializer {
     public function defineChild($name, Serializer $serializer, $getter, $setter = null) {
         $this->serializers[$name] = $serializer;
         $this->getters[$name] = $getter;
-        $this->setters[$name] = $setter ?: function () {
-        };
+        $this->setters[$name] = $setter ?: function () {};
         return $this;
     }
 
