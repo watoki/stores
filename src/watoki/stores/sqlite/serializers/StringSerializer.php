@@ -1,7 +1,7 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\sqlite\DefinedSerializer;
+use watoki\stores\sqlite\SqliteSerializer;
 
 class StringSerializer extends ColumnSerializer {
 

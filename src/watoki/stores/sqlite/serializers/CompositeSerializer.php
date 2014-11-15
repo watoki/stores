@@ -1,12 +1,12 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\sqlite\DefinedSerializer;
+use watoki\stores\sqlite\SqliteSerializer;
 use watoki\stores\sqlite\SqliteSerializerRegistry;
 
-class CompositeSerializer implements DefinedSerializer {
+class CompositeSerializer implements SqliteSerializer {
 
-    /** @var array|DefinedSerializer[] */
+    /** @var array|SqliteSerializer[] */
     private $serializers = array();
 
     /** @var array|callable[] */
@@ -27,12 +27,12 @@ class CompositeSerializer implements DefinedSerializer {
 
     /**
      * @param string $name
-     * @param DefinedSerializer $serializer
+     * @param SqliteSerializer $serializer
      * @param callable $getter
      * @param callable|null $setter
      * @return $this
      */
-    public function defineChild($name, DefinedSerializer $serializer, $getter, $setter = null) {
+    public function defineChild($name, SqliteSerializer $serializer, $getter, $setter = null) {
         $this->serializers[$name] = $serializer;
         $this->getters[$name] = $getter;
         $this->setters[$name] = $setter ?: function () {

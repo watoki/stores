@@ -1,17 +1,17 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\sqlite\DefinedSerializer;
+use watoki\stores\sqlite\SqliteSerializer;
 
 class ArraySerializer extends ColumnSerializer {
 
-    /** @var DefinedSerializer */
+    /** @var SqliteSerializer */
     private $itemSerializer;
 
     /**
-     * @param DefinedSerializer $itemSerializer
+     * @param SqliteSerializer $itemSerializer
      */
-    public function __construct(DefinedSerializer $itemSerializer) {
+    public function __construct(SqliteSerializer $itemSerializer) {
         $this->itemSerializer = $itemSerializer;
     }
 

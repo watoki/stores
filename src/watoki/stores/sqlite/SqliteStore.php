@@ -29,7 +29,7 @@ class SqliteStore extends GeneralStore {
     }
 
     /**
-     * @return DefinedSerializer
+     * @return SqliteSerializer
      */
     protected function getSerializer() {
         return $this->getSerializers()->getSerializer($this->getEntityType());

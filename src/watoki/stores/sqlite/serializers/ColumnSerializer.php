@@ -1,9 +1,9 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\sqlite\DefinedSerializer;
+use watoki\stores\sqlite\SqliteSerializer;
 
-abstract class ColumnSerializer implements DefinedSerializer {
+abstract class ColumnSerializer implements SqliteSerializer {
 
     /** @var bool */
     private $nullable;

@@ -1,9 +1,9 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\sqlite\DefinedSerializer;
+use watoki\stores\sqlite\SqliteSerializer;
 
-class NullSerializer implements DefinedSerializer {
+class NullSerializer implements SqliteSerializer {
 
     public function serialize($inflated) {
         return null;

@@ -13,7 +13,7 @@ class SqliteSerializerRegistry extends SerializerRegistry {
 
     /**
      * @param $type
-     * @return DefinedSerializer
+     * @return SqliteSerializer
      */
     public function getSerializer($type) {
         return parent::getSerializer($type);
