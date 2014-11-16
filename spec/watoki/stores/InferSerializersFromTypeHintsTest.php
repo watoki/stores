@@ -6,7 +6,7 @@ use watoki\scrut\Specification;
 use watoki\stores\common\CallbackSerializer;
 use watoki\stores\file\FileStore;
 use watoki\stores\file\JsonSerializer;
-use watoki\stores\ReflectingSerializer;
+use watoki\stores\common\ReflectingSerializer;
 use watoki\stores\SerializerRegistry;
 
 /**
@@ -151,12 +151,12 @@ class InferSerializersFromTypeHintsTest extends Specification {
     }
 
     public function whenISerialize($class) {
-        $serializer = new ReflectingSerializer($class, $this->registry);
+        $serializer = new \watoki\stores\common\ReflectingSerializer($class, $this->registry);
         $this->serialized = $serializer->serialize(new $class);
     }
 
     public function whenISerialize_Using($class, $genericSerializer) {
-        $serializer = new ReflectingSerializer($class, $this->registry, $genericSerializer);
+        $serializer = new \watoki\stores\common\ReflectingSerializer($class, $this->registry, $genericSerializer);
         $this->serialized = $serializer->serialize(new $class);
     }
 

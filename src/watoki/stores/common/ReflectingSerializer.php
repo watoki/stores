@@ -1,11 +1,11 @@
 <?php
-namespace watoki\stores;
+namespace watoki\stores\common;
 
 use watoki\reflect\Property;
 use watoki\reflect\PropertyReader;
-use watoki\stores\common\GenericSerializer;
+use watoki\stores\SerializerRegistry;
 
-class ReflectingSerializer implements Serializer {
+class ReflectingSerializer implements \watoki\stores\Serializer {
 
     /** @var \watoki\stores\common\GenericSerializer */
     private $genericSerializer;
