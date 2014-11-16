@@ -3,9 +3,10 @@ namespace watoki\stores\common;
 
 use watoki\reflect\Property;
 use watoki\reflect\PropertyReader;
+use watoki\stores\Serializer;
 use watoki\stores\SerializerRegistry;
 
-class ReflectingSerializer implements \watoki\stores\Serializer {
+class ReflectingSerializer implements Serializer {
 
     /** @var \watoki\stores\common\GenericSerializer */
     private $genericSerializer;
@@ -20,7 +21,6 @@ class ReflectingSerializer implements \watoki\stores\Serializer {
     public function __construct($class, SerializerRegistry $registry, $genericSerializerClass = null) {
         $genericSerializerClass = $genericSerializerClass ? : GenericSerializer::$CLASS;
         $this->genericSerializer = $this->createGenericSerializer($class, $genericSerializerClass);
-
         $this->defineProperties($registry, $class);
     }
 
