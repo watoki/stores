@@ -2,7 +2,23 @@
 namespace watoki\stores\sqlite;
 
 use watoki\collections\Set;
+use watoki\reflect\type\ArrayType;
+use watoki\reflect\type\BooleanType;
+use watoki\reflect\type\ClassType;
+use watoki\reflect\type\FloatType;
+use watoki\reflect\type\IntegerType;
+use watoki\reflect\type\NullableType;
+use watoki\reflect\type\StringType;
+use watoki\reflect\Type;
 use watoki\stores\GeneralStore;
+use watoki\stores\SerializerRegistry;
+use watoki\stores\sqlite\serializers\ArraySerializer;
+use watoki\stores\sqlite\serializers\BooleanSerializer;
+use watoki\stores\sqlite\serializers\DateTimeSerializer;
+use watoki\stores\sqlite\serializers\FloatSerializer;
+use watoki\stores\sqlite\serializers\IntegerSerializer;
+use watoki\stores\sqlite\serializers\NullableSerializer;
+use watoki\stores\sqlite\serializers\StringSerializer;
 
 class SqliteStore extends GeneralStore {
 
@@ -27,6 +43,22 @@ class SqliteStore extends GeneralStore {
         $this->serializer = $serializer;
         $this->tableName = $tableName;
         $this->db = $db;
+    }
+
+    public static function registerDefaultSerializers(SerializerRegistry $registry) {
+        $registry->register(new BooleanType(), new BooleanSerializer());
+        $registry->register(new FloatType(), new FloatSerializer());
+        $registry->register(new IntegerType(), new IntegerSerializer());
+        $registry->register(new StringType(), new StringSerializer());
+        $registry->register(new ClassType('DateTime'), new DateTimeSerializer());
+        $registry->getFallBacks()->append(function (Type $type) use ($registry) {
+            if ($type instanceof NullableType) {
+                return new NullableSerializer($registry->get($type->getType()));
+            } else if ($type instanceof ArrayType) {
+                return new ArraySerializer($registry->get($type->getItemType()));
+            }
+            return null;
+        });
     }
 
     /**

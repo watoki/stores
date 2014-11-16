@@ -3,20 +3,20 @@ namespace watoki\stores\sqlite\serializers;
 
 class DateTimeSerializer extends ColumnSerializer {
 
-    /** @var \watoki\stores\common\DateTimeSerializer */
-    private $serializer;
-
-    function __construct($nullable = false) {
-        parent::__construct($nullable);
-        $this->serializer = new \watoki\stores\common\DateTimeSerializer();
-    }
-
+    /**
+     * @param \DateTime $inflated
+     * @return string
+     */
     public function serialize($inflated) {
-        return $this->serializer->serialize($inflated);
+        return $inflated->format('c');
     }
 
+    /**
+     * @param $serialized
+     * @return \DateTime
+     */
     public function inflate($serialized) {
-        return $this->serializer->inflate($serialized);
+        return new \DateTime($serialized);
     }
 
     protected function getColumnDefinition() {

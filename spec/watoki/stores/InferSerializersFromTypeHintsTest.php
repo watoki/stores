@@ -2,6 +2,7 @@
 namespace spec\watoki\stores;
 
 use watoki\reflect\type\ClassType;
+use watoki\reflect\type\StringType;
 use watoki\scrut\Specification;
 use watoki\stores\common\CallbackSerializer;
 use watoki\stores\common\NoneSerializer;
@@ -143,7 +144,7 @@ class InferSerializersFromTypeHintsTest extends Specification {
     protected function setUp() {
         parent::setUp();
         $this->registry = new SerializerRegistry();
-        FileStore::registerDefaultSerializers($this->registry);
+        $this->registry->register(new StringType(), new NoneSerializer());
     }
 
 
@@ -159,7 +160,7 @@ class InferSerializersFromTypeHintsTest extends Specification {
     }
 
     private function givenIHaveSetTheFallBack($callback) {
-        $this->registry->setFallback($callback);
+        $this->registry->getFallBacks()->append($callback);
     }
 
     private function whenITryToSerialize($class) {

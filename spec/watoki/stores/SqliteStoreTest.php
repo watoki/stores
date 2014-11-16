@@ -6,8 +6,13 @@ use spec\watoki\stores\fixtures\StoresTestEntity;
 use watoki\scrut\Specification;
 use watoki\stores\sqlite\serializers\CompositeSerializer;
 use watoki\stores\sqlite\serializers\IntegerSerializer;
+use watoki\stores\sqlite\serializers\NullableSerializer;
 use watoki\stores\sqlite\serializers\StringSerializer;
 use watoki\stores\sqlite\SqliteStore;
+use watoki\stores\sqlite\serializers\ArraySerializer;
+use watoki\stores\sqlite\serializers\BooleanSerializer;
+use watoki\stores\sqlite\serializers\DateTimeSerializer;
+use watoki\stores\sqlite\serializers\FloatSerializer;
 
 class SqliteStoreTest extends Specification {
 
@@ -295,7 +300,18 @@ class SqliteStoreTest extends Specification {
             );
         });
 
-        foreach (StoresTestEntity::serializers() as $child => $childSerializer) {
+        $serializers = array(
+            'boolean' => new BooleanSerializer(),
+            'integer' => new IntegerSerializer(),
+            'float' => new FloatSerializer(),
+            'string' => new StringSerializer(),
+            'dateTime' => new DateTimeSerializer(),
+            'null' => new NullableSerializer(new StringSerializer()),
+            'nullDateTime' => new NullableSerializer(new DateTimeSerializer()),
+            'array' => new ArraySerializer(new StringSerializer()),
+        );
+
+        foreach ($serializers as $child => $childSerializer) {
             $this->entitySerializer->defineChild($child, $childSerializer,
                 function ($entity) use ($child) {
                     return $entity->$child;
@@ -325,6 +341,6 @@ class SqliteStoreTest extends Specification {
     }
 
     private function createFullTable() {
-        $this->store->createTable(['id', 'boolean', 'integer', 'float', 'string', 'dateTime', 'null', 'nullDateTime', 'array']);
+        $this->store->createTable(array('id', 'boolean', 'integer', 'float', 'string', 'dateTime', 'null', 'nullDateTime', 'array'));
     }
 }

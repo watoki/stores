@@ -1,6 +1,7 @@
 <?php
 namespace watoki\stores;
 
+use watoki\collections\Liste;
 use watoki\reflect\Type;
 use watoki\reflect\type\MultiType;
 use watoki\reflect\type\UnknownType;
@@ -12,8 +13,12 @@ class SerializerRegistry {
     /** @var array|Serializer[] */
     private $serializers = array();
 
-    /** @var null|callable */
-    private $fallback;
+    /** @var Liste|callable[] */
+    private $fallBacks;
+
+    public function __construct() {
+        $this->fallBacks = new Liste();
+    }
 
     public function register(Type $type, Serializer $serializer) {
         $this->serializers[serialize($type)] = $serializer;
@@ -31,10 +36,10 @@ class SerializerRegistry {
             return $this->serializers[$key];
         }
 
-        if ($this->fallback) {
-            $fallback = call_user_func($this->fallback, $type);
-            if ($fallback) {
-                return $fallback;
+        foreach ($this->fallBacks as $fallBack) {
+            $serializer = call_user_func($fallBack, $type);
+            if ($serializer) {
+                return $serializer;
             }
         }
 
@@ -44,10 +49,10 @@ class SerializerRegistry {
     }
 
     /**
-     * @param callable $callback
+     * @return \callable[]|\watoki\collections\Liste
      */
-    public function setFallback($callback) {
-        $this->fallback = $callback;
+    public function getFallBacks() {
+        return $this->fallBacks;
     }
 
 }

@@ -1,7 +1,11 @@
 <?php
 namespace watoki\stores\file;
 
+use watoki\reflect\type\ClassType;
+use watoki\reflect\type\PrimitiveType;
 use watoki\reflect\type\StringType;
+use watoki\reflect\Type;
+use watoki\stores\common\DateTimeSerializer;
 use watoki\stores\common\NoneSerializer;
 use watoki\stores\exception\EntityNotFoundException;
 use watoki\stores\GeneralStore;
@@ -24,7 +28,13 @@ class FileStore extends GeneralStore {
     }
 
     public static function registerDefaultSerializers(SerializerRegistry $registry) {
-        $registry->register(new StringType(), new NoneSerializer());
+        $registry->register(new ClassType('DateTime'), new DateTimeSerializer());
+        $registry->getFallBacks()->append(function (Type $type) {
+            if ($type instanceof PrimitiveType) {
+                return new NoneSerializer();
+            }
+            return null;
+        });
     }
 
     protected function _read($id) {

@@ -1,13 +1,6 @@
 <?php
 namespace spec\watoki\stores\fixtures;
 
-use watoki\stores\sqlite\serializers\ArraySerializer;
-use watoki\stores\sqlite\serializers\BooleanSerializer;
-use watoki\stores\sqlite\serializers\DateTimeSerializer;
-use watoki\stores\sqlite\serializers\FloatSerializer;
-use watoki\stores\sqlite\serializers\IntegerSerializer;
-use watoki\stores\sqlite\serializers\StringSerializer;
-
 class StoresTestEntity {
 
     public static $CLASS = __CLASS__;
@@ -41,16 +34,4 @@ class StoresTestEntity {
         $this->array = $array;
     }
 
-    public static function serializers() {
-        return array(
-            'boolean' => new BooleanSerializer(),
-            'integer' => new IntegerSerializer(),
-            'float' => new FloatSerializer(),
-            'string' => new StringSerializer(),
-            'dateTime' => new DateTimeSerializer(),
-            'null' => new StringSerializer(true),
-            'nullDateTime' => new DateTimeSerializer(true),
-            'array' => new ArraySerializer(new StringSerializer()),
-        );
-    }
 }
