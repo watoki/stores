@@ -1,9 +1,12 @@
 <?php
 namespace watoki\stores\file;
 
+use watoki\reflect\type\StringType;
+use watoki\stores\common\NoneSerializer;
 use watoki\stores\exception\EntityNotFoundException;
 use watoki\stores\GeneralStore;
 use watoki\stores\Serializer;
+use watoki\stores\SerializerRegistry;
 
 class FileStore extends GeneralStore {
 
@@ -18,6 +21,10 @@ class FileStore extends GeneralStore {
     public function __construct(Serializer $serializer, $rootDirectory) {
         parent::__construct($serializer);
         $this->root = rtrim($rootDirectory, '\\/');
+    }
+
+    public static function registerDefaultSerializers(SerializerRegistry $registry) {
+        $registry->register(new StringType(), new NoneSerializer());
     }
 
     protected function _read($id) {

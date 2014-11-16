@@ -5,6 +5,8 @@ use watoki\stores\Serializer;
 
 class GenericSerializer implements Serializer {
 
+    public static $CLASS = __CLASS__;
+
     /** @var array|Serializer[] */
     private $serializers = array();
 

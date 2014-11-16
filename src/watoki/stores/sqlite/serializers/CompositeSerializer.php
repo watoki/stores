@@ -7,6 +7,8 @@ use watoki\stores\sqlite\SqliteSerializer;
 
 class CompositeSerializer extends GenericSerializer implements SqliteSerializer {
 
+    public static $CLASS = __CLASS__;
+
     private static $SEPARATOR = '__';
 
     /** @var SqliteSerializer[] */
