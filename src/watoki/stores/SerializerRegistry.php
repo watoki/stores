@@ -12,6 +12,9 @@ class SerializerRegistry {
     /** @var array|Serializer[] */
     private $serializers = array();
 
+    /** @var null|callable */
+    private $fallback;
+
     public function register(Type $type, Serializer $serializer) {
         $this->serializers[serialize($type)] = $serializer;
     }
@@ -24,13 +27,27 @@ class SerializerRegistry {
         }
 
         $key = serialize($type);
-
-        if (!array_key_exists($key, $this->serializers)) {
-            $typePrinted = str_replace("\n", "", print_r($type, true));
-            throw new \Exception("No Serializer registered for [$typePrinted]");
+        if (array_key_exists($key, $this->serializers)) {
+            return $this->serializers[$key];
         }
 
-        return $this->serializers[$key];
+        if ($this->fallback) {
+            $fallback = call_user_func($this->fallback, $type);
+            if ($fallback) {
+                return $fallback;
+            }
+        }
+
+        $typePrinted = str_replace("\n", "", print_r($type, true));
+        throw new \Exception("No Serializer registered for [$typePrinted]");
+
+    }
+
+    /**
+     * @param callable $callback
+     */
+    public function setFallback($callback) {
+        $this->fallback = $callback;
     }
 
 }

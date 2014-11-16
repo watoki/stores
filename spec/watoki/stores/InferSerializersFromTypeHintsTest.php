@@ -4,8 +4,9 @@ namespace spec\watoki\stores;
 use watoki\reflect\type\ClassType;
 use watoki\scrut\Specification;
 use watoki\stores\common\CallbackSerializer;
+use watoki\stores\common\NoneSerializer;
 use watoki\stores\file\FileStore;
-use watoki\stores\file\JsonSerializer;
+use watoki\stores\common\JsonSerializer;
 use watoki\stores\common\ReflectingSerializer;
 use watoki\stores\SerializerRegistry;
 
@@ -105,10 +106,24 @@ class InferSerializersFromTypeHintsTest extends Specification {
             '[NotAGenericSerializer] is not a subclass of [watoki\stores\common\GenericSerializer]');
     }
 
-    function testFailIfTypeNotRegistered() {
+    function testFallBackIfTypeNotRegistered() {
         $this->class->givenTheClass_WithTheBody('TypeNotRegistered\SomeClass', '
             /** @var int */
-            public $property;
+            public $property = 42;
+        ');
+        $this->givenIHaveSetTheFallBack(function () {
+            return new NoneSerializer();
+        });
+        $this->whenISerialize('TypeNotRegistered\SomeClass');
+        $this->thenTheResultShouldBe(array(
+            'property' => 42
+        ));
+    }
+
+    function testFailIfTypeNotRegisteredAndFallBackFails() {
+        $this->class->givenTheClass_WithTheBody('TypeNotRegistered\SomeClass', '
+            /** @var int */
+            public $property = 42;
         ');
         $this->whenITryToSerialize('TypeNotRegistered\SomeClass');
         $this->try->thenTheException_ShouldBeThrown(
@@ -141,6 +156,10 @@ class InferSerializersFromTypeHintsTest extends Specification {
                 return 'whatever';
             }
         ));
+    }
+
+    private function givenIHaveSetTheFallBack($callback) {
+        $this->registry->setFallback($callback);
     }
 
     private function whenITryToSerialize($class) {

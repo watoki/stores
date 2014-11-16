@@ -8,7 +8,7 @@ use watoki\stores\common\GenericSerializer;
 use watoki\stores\file\FileStore;
 use watoki\stores\file\raw\File;
 use watoki\stores\file\raw\RawFileStore as RawFileStore;
-use watoki\stores\file\JsonSerializer;
+use watoki\stores\common\JsonSerializer;
 use watoki\stores\Serializer;
 use watoki\stores\sqlite\serializers\StringSerializer;
 

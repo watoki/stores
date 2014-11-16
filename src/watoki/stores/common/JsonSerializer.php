@@ -1,7 +1,5 @@
 <?php
-namespace watoki\stores\file;
-
-use watoki\stores\common\GenericSerializer;
+namespace watoki\stores\common;
 
 class JsonSerializer extends GenericSerializer {
 
@@ -14,6 +12,5 @@ class JsonSerializer extends GenericSerializer {
     public function inflate($serialized) {
         return parent::inflate(json_decode($serialized, true));
     }
-
 
 } 
