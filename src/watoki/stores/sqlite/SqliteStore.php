@@ -217,18 +217,23 @@ class SqliteStore extends GeneralStore {
     }
 
     public function readBy($column, $value) {
-        return $this->inflate(
-            $this->db->readOne("SELECT * FROM {$this->getTableName()} WHERE \"$column\" = ? LIMIT 1", array($value)));
+        return $this->readQuery("SELECT * FROM {$this->getTableName()} WHERE \"$column\" = ? LIMIT 1", array($value));
+    }
+
+    public function readQuery($sql, $variables = array()) {
+        return $this->inflate($this->db->readOne($sql, $variables));
     }
 
     public function readAll() {
-        return $this->inflateAll(
-            $this->db->readAll("SELECT * FROM {$this->getTableName()}"));
+        return $this->readAllQuery("SELECT * FROM {$this->getTableName()}");
     }
 
     public function readAllBy($column, $value) {
-        return $this->inflateAll(
-            $this->db->readAll("SELECT * FROM {$this->getTableName()} WHERE \"$column\" = ?", array($value)));
+        return $this->readAllQuery("SELECT * FROM {$this->getTableName()} WHERE \"$column\" = ?", array($value));
+    }
+
+    public function readAllQuery($sql, $variables = array()) {
+        return $this->inflateAll($this->db->readAll($sql, $variables));
     }
 
     protected function inflateAll($rows, $collection = null) {
