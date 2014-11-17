@@ -1,6 +1,7 @@
 <?php
 namespace watoki\stores\memory;
 
+use watoki\stores\common\factories\CallbackSerializerFactory;
 use watoki\stores\common\NoneSerializer;
 use watoki\stores\exception\EntityNotFoundException;
 use watoki\stores\GeneralStore;
@@ -19,9 +20,12 @@ class MemoryStore extends GeneralStore {
     }
 
     public static function registerDefaultSerializers(SerializerRegistry $registry) {
-        $registry->getFallBacks()->append(function () {
-            return new NoneSerializer();
-        });
+        $registry->add(new CallbackSerializerFactory(
+            function () { return true; },
+            function () { return new NoneSerializer(); }
+        ));
+
+        return $registry;
     }
 
     protected function _read($id) {

@@ -10,10 +10,16 @@ use watoki\reflect\type\IntegerType;
 use watoki\reflect\type\NullableType;
 use watoki\reflect\type\StringType;
 use watoki\reflect\Type;
+use watoki\stores\common\factories\CallbackSerializerFactory;
+use watoki\stores\common\factories\ClassSerializerFactory;
+use watoki\stores\common\factories\SimpleSerializerFactory;
+use watoki\stores\common\factories\StaticSerializerFactory;
+use watoki\stores\common\Reflector;
 use watoki\stores\GeneralStore;
 use watoki\stores\SerializerRegistry;
 use watoki\stores\sqlite\serializers\ArraySerializer;
 use watoki\stores\sqlite\serializers\BooleanSerializer;
+use watoki\stores\sqlite\serializers\CompositeSerializer;
 use watoki\stores\sqlite\serializers\DateTimeSerializer;
 use watoki\stores\sqlite\serializers\FloatSerializer;
 use watoki\stores\sqlite\serializers\IntegerSerializer;
@@ -45,20 +51,53 @@ class SqliteStore extends GeneralStore {
         $this->db = $db;
     }
 
+    /**
+     * @param string $class
+     * @param Database $database
+     * @return SqliteStore
+     */
+    public static function forClass($class, Database $database) {
+        $registry = self::registerDefaultSerializers(new SerializerRegistry());
+
+        $reflector = new Reflector($class, $registry);
+        $serializer = $reflector->create(CompositeSerializer::$CLASS);
+
+        $classParts = explode('\\', $class);
+
+        return new SqliteStore($serializer, end($classParts), $database);
+    }
+
+    /**
+     * @param SerializerRegistry $registry
+     * @return SerializerRegistry
+     */
     public static function registerDefaultSerializers(SerializerRegistry $registry) {
-        $registry->register(new BooleanType(), new BooleanSerializer());
-        $registry->register(new FloatType(), new FloatSerializer());
-        $registry->register(new IntegerType(), new IntegerSerializer());
-        $registry->register(new StringType(), new StringSerializer());
-        $registry->register(new ClassType('DateTime'), new DateTimeSerializer());
-        $registry->getFallBacks()->append(function (Type $type) use ($registry) {
-            if ($type instanceof NullableType) {
+        $registry->add(new StaticSerializerFactory(array(
+            BooleanType::$CLASS => new BooleanSerializer(),
+            FloatType::$CLASS => new FloatSerializer(),
+            IntegerType::$CLASS => new IntegerSerializer(),
+            StringType::$CLASS => new StringSerializer()
+        )));
+
+        $registry->add(new ClassSerializerFactory('DateTime', new DateTimeSerializer()));
+
+        $registry->add(new SimpleSerializerFactory(NullableType::$CLASS,
+            function (NullableType $type) use ($registry) {
                 return new NullableSerializer($registry->get($type->getType()));
-            } else if ($type instanceof ArrayType) {
+            }
+        ));
+        $registry->add(new SimpleSerializerFactory(ArrayType::$CLASS,
+            function (ArrayType $type) use ($registry) {
                 return new ArraySerializer($registry->get($type->getItemType()));
             }
-            return null;
-        });
+        ));
+        $registry->add(new SimpleSerializerFactory(ClassType::$CLASS,
+            function (ClassType $type) use ($registry) {
+                $reflector = new Reflector($type->getClass(), $registry);
+                return $reflector->create(CompositeSerializer::$CLASS);
+            }));
+
+        return $registry;
     }
 
     /**
@@ -94,8 +133,10 @@ class SqliteStore extends GeneralStore {
         $definitions = $this->serializer->getDefinition();
         $definition = $definitions[$property];
 
-        $quotedDefault = $this->db->quote($default);
-        $this->db->execute("ALTER TABLE {$this->getTableName()} ADD COLUMN \"$property\" $definition DEFAULT $quotedDefault");
+        if (!is_null($default)) {
+            $definition .= ' DEFAULT ' . $this->db->quote($default);
+        }
+        $this->db->execute("ALTER TABLE {$this->getTableName()} ADD COLUMN \"$property\" $definition");
     }
 
     public function dropTable() {

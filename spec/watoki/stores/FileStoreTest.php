@@ -2,21 +2,22 @@
 namespace spec\watoki\stores;
 
 use spec\watoki\stores\fixtures\StoresTestEntity;
+use spec\watoki\stores\fixtures\StoresTestEntity_Child;
+use spec\watoki\stores\fixtures\StoresTestEntity_GrandChild;
 use watoki\scrut\Specification;
-use watoki\stores\common\DateTimeSerializer;
 use watoki\stores\common\GenericSerializer;
 use watoki\stores\file\FileStore;
 use watoki\stores\file\raw\File;
 use watoki\stores\file\raw\RawFileStore as RawFileStore;
-use watoki\stores\common\JsonSerializer;
-use watoki\stores\Serializer;
+use watoki\stores\file\serializers\DateTimeSerializer;
+use watoki\stores\file\serializers\JsonSerializer;
 use watoki\stores\sqlite\serializers\StringSerializer;
 
 class FileStoreTest extends Specification {
 
     function testCreate() {
-        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array('some' => array(42, 73))),
-            'there/here');
+        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array('some' => array(42, 73)));
+        $this->store->create($entity, 'there/here');
 
         $this->assertExists('there/here');
         $this->assertContent('there/here', '{
@@ -27,7 +28,12 @@ class FileStoreTest extends Specification {
             "dateTime": "2001-01-01T00:00:00+00:00",
             "null": null,
             "nullDateTime": null,
-            "array":{"some":[42, 73]}
+            "array":{"some":[42, 73]},
+            "child": {
+                "one": "uno",
+                "two": "dos",
+                "child": { "foo": "bar" }
+            }
         }');
     }
 
@@ -41,6 +47,7 @@ class FileStoreTest extends Specification {
         $dateTime = new \DateTime('2001-01-01');
         $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', $dateTime), 'that/file');
 
+        $this->initStore();
         /** @var StoresTestEntity $entity */
         $entity = $this->store->read('that/file');
 
@@ -69,7 +76,12 @@ class FileStoreTest extends Specification {
             "dateTime": "2001-01-01T00:00:00+00:00",
             "null": null,
             "nullDateTime": "2012-12-12T12:12:12+00:00",
-            "array":{"foo":"bar","0":[42,73]}
+            "array":{"foo":"bar","0":[42,73]},
+            "child": {
+                "one": "uno",
+                "two": "dos",
+                "child": { "foo": "bar" }
+            }
         }');
     }
 
@@ -153,9 +165,13 @@ class FileStoreTest extends Specification {
         $this->clear($this->tmpDir);
         mkdir($this->tmpDir, 0777, true);
 
-        $this->store = new FileStore(new FileStoreTest_TestEntityFileSerializer(), $this->tmpDir);
+        $this->initStore();
 
         date_default_timezone_set('UTC');
+    }
+
+    private function initStore() {
+        $this->store = FileStore::forClass(StoresTestEntity::$CLASS, $this->tmpDir);
     }
 
     protected function tearDown() {
@@ -189,41 +205,5 @@ class FileStoreTest extends Specification {
             }
         }
         @rmdir($dir);
-    }
-}
-
-class FileStoreTest_TestEntityFileSerializer implements Serializer {
-
-    /**
-     * @param StoresTestEntity $inflated
-     * @return array
-     */
-    public function serialize($inflated) {
-        return json_encode(array(
-            'boolean' => $inflated->boolean,
-            'integer' => $inflated->integer,
-            'float' => $inflated->float,
-            'string' => $inflated->string,
-            'dateTime' => $inflated->dateTime->format('c'),
-            'null' => $inflated->null,
-            'nullDateTime' => $inflated->nullDateTime ? $inflated->nullDateTime->format('c') : null,
-            'array' => $inflated->array
-        ));
-    }
-
-    /**
-     * @param array $serialized
-     * @return StoresTestEntity
-     */
-    public function inflate($serialized) {
-        $serialized = json_decode($serialized, true);
-        return new StoresTestEntity(
-            $serialized['boolean'],
-            $serialized['integer'],
-            $serialized['float'],
-            $serialized['string'],
-            $serialized['dateTime'],
-            $serialized['array']
-        );
     }
 }

@@ -1,13 +1,22 @@
 <?php
 namespace watoki\stores\file;
 
+use watoki\reflect\type\ArrayType;
 use watoki\reflect\type\ClassType;
+use watoki\reflect\type\NullableType;
 use watoki\reflect\type\PrimitiveType;
-use watoki\reflect\type\StringType;
 use watoki\reflect\Type;
-use watoki\stores\common\DateTimeSerializer;
+use watoki\stores\common\factories\SimpleSerializerFactory;
+use watoki\stores\common\GenericSerializer;
+use watoki\stores\common\Reflector;
+use watoki\stores\file\serializers\ArraySerializer;
+use watoki\stores\file\serializers\DateTimeSerializer;
+use watoki\stores\common\factories\CallbackSerializerFactory;
+use watoki\stores\common\factories\ClassSerializerFactory;
 use watoki\stores\common\NoneSerializer;
 use watoki\stores\exception\EntityNotFoundException;
+use watoki\stores\file\serializers\JsonSerializer;
+use watoki\stores\file\serializers\NullableSerializer;
 use watoki\stores\GeneralStore;
 use watoki\stores\Serializer;
 use watoki\stores\SerializerRegistry;
@@ -27,14 +36,45 @@ class FileStore extends GeneralStore {
         $this->root = rtrim($rootDirectory, '\\/');
     }
 
+    /**
+     * @param string $class
+     * @param string $rootDirectory
+     * @return FileStore
+     */
+    public static function forClass($class, $rootDirectory) {
+        $registry = self::registerDefaultSerializers(new SerializerRegistry());
+
+        $reflector = new Reflector($class, $registry);
+        $serializer = $reflector->create(JsonSerializer::$CLASS);
+
+        return new FileStore($serializer, $rootDirectory);
+    }
+
+    /**
+     * @param SerializerRegistry $registry
+     * @return SerializerRegistry
+     */
     public static function registerDefaultSerializers(SerializerRegistry $registry) {
-        $registry->register(new ClassType('DateTime'), new DateTimeSerializer());
-        $registry->getFallBacks()->append(function (Type $type) {
-            if ($type instanceof PrimitiveType) {
+        $registry->add(new ClassSerializerFactory('DateTime', new DateTimeSerializer()));
+        $registry->add(new SimpleSerializerFactory(NullableType::$CLASS,
+            function (NullableType $type) use ($registry) {
+                return new NullableSerializer($registry->get($type->getType()));
+            }));
+        $registry->add(new SimpleSerializerFactory(ArrayType::$CLASS,
+            function (ArrayType $type) use ($registry) {
+                return new ArraySerializer($registry->get($type->getItemType()));
+            }));
+        $registry->add(new SimpleSerializerFactory(ClassType::$CLASS,
+            function (ClassType $type) use ($registry) {
+                $reflector = new Reflector($type->getClass(), $registry);
+                return $reflector->create(GenericSerializer::$CLASS);
+            }));
+        $registry->add(new SimpleSerializerFactory(PrimitiveType::$CLASS,
+            function () {
                 return new NoneSerializer();
-            }
-            return null;
-        });
+            }));
+
+        return $registry;
     }
 
     protected function _read($id) {

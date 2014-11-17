@@ -1,8 +1,6 @@
 <?php
 namespace watoki\stores\sqlite\serializers;
 
-use watoki\stores\sqlite\SqliteSerializer;
-
 class StringSerializer extends ColumnSerializer {
 
     public function serialize($inflated) {

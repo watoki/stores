@@ -1,5 +1,5 @@
 <?php
-namespace watoki\stores\common;
+namespace watoki\stores\file\serializers;
 
 use watoki\stores\Serializer;
 

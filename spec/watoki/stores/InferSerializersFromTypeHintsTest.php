@@ -1,14 +1,16 @@
 <?php
 namespace spec\watoki\stores;
 
-use watoki\reflect\type\ClassType;
+use watoki\reflect\Type;
 use watoki\reflect\type\StringType;
 use watoki\scrut\Specification;
 use watoki\stores\common\CallbackSerializer;
+use watoki\stores\common\factories\ClassSerializerFactory;
+use watoki\stores\common\factories\StaticSerializerFactory;
+use watoki\stores\common\GenericSerializer;
 use watoki\stores\common\NoneSerializer;
-use watoki\stores\file\FileStore;
-use watoki\stores\common\JsonSerializer;
-use watoki\stores\common\ReflectingSerializer;
+use watoki\stores\common\Reflector;
+use watoki\stores\file\serializers\JsonSerializer;
 use watoki\stores\SerializerRegistry;
 
 /**
@@ -107,20 +109,6 @@ class InferSerializersFromTypeHintsTest extends Specification {
             '[NotAGenericSerializer] is not a subclass of [watoki\stores\common\GenericSerializer]');
     }
 
-    function testFallBackIfTypeNotRegistered() {
-        $this->class->givenTheClass_WithTheBody('TypeNotRegistered\SomeClass', '
-            /** @var int */
-            public $property = 42;
-        ');
-        $this->givenIHaveSetTheFallBack(function () {
-            return new NoneSerializer();
-        });
-        $this->whenISerialize('TypeNotRegistered\SomeClass');
-        $this->thenTheResultShouldBe(array(
-            'property' => 42
-        ));
-    }
-
     function testFailIfTypeNotRegisteredAndFallBackFails() {
         $this->class->givenTheClass_WithTheBody('TypeNotRegistered\SomeClass', '
             /** @var int */
@@ -144,23 +132,22 @@ class InferSerializersFromTypeHintsTest extends Specification {
     protected function setUp() {
         parent::setUp();
         $this->registry = new SerializerRegistry();
-        $this->registry->register(new StringType(), new NoneSerializer());
+        $this->registry->add(new StaticSerializerFactory(array(
+            StringType::$CLASS => new NoneSerializer()
+        )));
     }
 
 
     private function givenIHaveRegisteredASerializerFor_SerializingItTo($class, $return) {
-        $this->registry->register(new ClassType($class), new CallbackSerializer(
-            function () use ($return) {
-                return eval('return ' . $return . ';');
-            },
-            function () {
-                return 'whatever';
-            }
+        $this->registry->add(new ClassSerializerFactory($class, new CallbackSerializer(
+                function () use ($return) {
+                    return eval('return ' . $return . ';');
+                },
+                function () {
+                    return 'whatever';
+                }
+            )
         ));
-    }
-
-    private function givenIHaveSetTheFallBack($callback) {
-        $this->registry->getFallBacks()->append($callback);
     }
 
     private function whenITryToSerialize($class) {
@@ -171,12 +158,12 @@ class InferSerializersFromTypeHintsTest extends Specification {
     }
 
     public function whenISerialize($class) {
-        $serializer = new \watoki\stores\common\ReflectingSerializer($class, $this->registry);
-        $this->serialized = $serializer->serialize(new $class);
+        $this->whenISerialize_Using($class, GenericSerializer::$CLASS);
     }
 
     public function whenISerialize_Using($class, $genericSerializer) {
-        $serializer = new \watoki\stores\common\ReflectingSerializer($class, $this->registry, $genericSerializer);
+        $serializer = new Reflector($class, $this->registry);
+        $serializer = $serializer->create($genericSerializer);
         $this->serialized = $serializer->serialize(new $class);
     }
 
@@ -188,7 +175,8 @@ class InferSerializersFromTypeHintsTest extends Specification {
     }
 
     private function whenIInflate_With($class, $array) {
-        $serializer = new ReflectingSerializer($class, $this->registry);
+        $serializer = new Reflector($class, $this->registry);
+        $serializer = $serializer->create(GenericSerializer::$CLASS);
         $this->inflated = $serializer->inflate($array);
     }
 

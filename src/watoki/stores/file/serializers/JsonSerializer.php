@@ -1,5 +1,7 @@
 <?php
-namespace watoki\stores\common;
+namespace watoki\stores\file\serializers;
+
+use watoki\stores\common\GenericSerializer;
 
 class JsonSerializer extends GenericSerializer {
 
