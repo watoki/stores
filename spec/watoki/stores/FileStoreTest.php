@@ -1,162 +1,281 @@
 <?php
 namespace spec\watoki\stores;
 
-use spec\watoki\stores\fixtures\StoresTestEntity;
-use spec\watoki\stores\fixtures\StoresTestEntity_Child;
-use spec\watoki\stores\fixtures\StoresTestEntity_GrandChild;
 use watoki\scrut\Specification;
-use watoki\stores\common\GenericSerializer;
+use watoki\stores\common\NoneSerializer;
 use watoki\stores\file\FileStore;
 use watoki\stores\file\raw\File;
 use watoki\stores\file\raw\RawFileStore as RawFileStore;
 use watoki\stores\file\serializers\DateTimeSerializer;
 use watoki\stores\file\serializers\JsonSerializer;
-use watoki\stores\sqlite\serializers\StringSerializer;
 
+/**
+ * @property \spec\watoki\reflect\fixtures\ClassFixture class <-
+ * @property \watoki\scrut\ExceptionFixture try <-
+ */
 class FileStoreTest extends Specification {
 
     function testCreate() {
-        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array('some' => array(42, 73)));
-        $this->store->create($entity, 'there/here');
+        $this->givenAnEntityWith('foo', new \DateTime('2001-01-01'));
+        $this->whenICreateTheEntityAs('there/here');
 
-        $this->assertExists('there/here');
-        $this->assertContent('there/here', '{
-            "boolean": true,
-            "integer": 42,
-            "float": 1.6,
-            "string": "Hello",
-            "dateTime": "2001-01-01T00:00:00+00:00",
-            "null": null,
-            "nullDateTime": null,
-            "array":{"some":[42, 73]},
-            "child": {
-                "one": "uno",
-                "two": "dos",
-                "child": { "foo": "bar" }
-            }
+        $this->thenThereShouldBeAFile('there/here');
+        $this->then_ShouldContain('there/here', '{
+            "one": "foo",
+            "two": "2001-01-01T00:00:00+00:00"
         }');
     }
 
     function testCreateRawFile() {
-        $this->store = new RawFileStore($this->tmpDir);
-        $this->store->create(new File('Some text'), 'here');
-        $this->assertRawContent('here', 'Some text');
+        $store = new RawFileStore($this->tmpDir);
+        $store->create(new File('Some text'), 'here');
+
+        $this->then_ShouldContain('here', 'Some text');
     }
 
     function testRead() {
-        $dateTime = new \DateTime('2001-01-01');
-        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', $dateTime), 'that/file');
+        $this->givenAFile_Containing('that/file', '{
+            "one": "foo",
+            "two": "2001-01-01T00:00:00+00:00"
+        }');
 
-        $this->initStore();
-        /** @var StoresTestEntity $entity */
-        $entity = $this->store->read('that/file');
+        $this->whenIRead('that/file');
 
-        $this->assertSame(true, $entity->boolean);
-        $this->assertSame(42, $entity->integer);
-        $this->assertSame(1.6, $entity->float);
-        $this->assertSame('Hello', $entity->string);
-        $this->assertEquals($dateTime->format('c'), $entity->dateTime->format('c'));
-        $this->assertNull($entity->null);
+        $this->then_ShouldBe('one', 'foo');
+        $this->then_ShouldBe('two', new \DateTime('2001-01-01 +00:00'));
     }
 
     function testUpdate() {
-        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
-        $this->store->create($entity, 'here');
+        $this->givenAFile_Containing('this/file', '{
+            "one": "foo",
+            "two": "2001-01-01T00:00:00+00:00"
+        }');
+        $this->whenIRead('this/file');
 
-        $entity->string = 'Hello back';
-        $entity->array = array('foo' => 'bar', array(42, 73));
-        $entity->nullDateTime = new \DateTime('2012-12-12 12:12:12');
-        $this->store->update($entity);
+        $this->givenISet_To('one', 'bar');
+        $this->givenISet_To('two', new \DateTime('2002-02-02'));
 
-        $this->assertContent('here', '{
-            "boolean": true,
-            "integer": 42,
-            "float": 1.6,
-            "string": "Hello back",
-            "dateTime": "2001-01-01T00:00:00+00:00",
-            "null": null,
-            "nullDateTime": "2012-12-12T12:12:12+00:00",
-            "array":{"foo":"bar","0":[42,73]},
-            "child": {
-                "one": "uno",
-                "two": "dos",
-                "child": { "foo": "bar" }
-            }
+        $this->whenIUpdateTheEntity();
+
+        $this->then_ShouldContain('this/file', '{
+            "one": "bar",
+            "two": "2002-02-02T00:00:00+00:00"
         }');
     }
 
     function testDelete() {
-        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
-        $this->store->create($entity, 'here');
+        $this->givenAnEntityWith('foo', new \DateTime('2001-01-01'));
+        $this->whenICreateTheEntityAs('file/here');
 
-        $this->store->delete('here');
-
-        $this->assertNotExists('here');
+        $this->whenIDelete('file/here');
+        $this->thenThereShouldBeNoFile('here');
     }
 
     function testKeys() {
-        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
-        $this->store->create($entity, 'file');
-        $this->store->create($entity, 'some/file');
-        $this->store->create($entity, 'some/bar');
-        $this->store->create($entity, 'some/deeper/file');
+        $this->givenAnEntityWith('foo', new \DateTime('2001-01-01'));
+        $this->whenICreateTheEntityAs('file');
+        $this->whenICreateTheEntityAs('some/file');
+        $this->whenICreateTheEntityAs('some/bar');
+        $this->whenICreateTheEntityAs('some/deeper/file');
 
-        $keys = $this->store->keys();
-
-        $this->assertEquals(array('file', 'some/bar', 'some/deeper/file', 'some/file'), $keys);
+        $this->thenTheKeysShouldBe(array('file', 'some/bar', 'some/deeper/file', 'some/file'));
     }
 
-    function testGenericSerializer() {
-        $get = function ($name) {
-            return function ($object) use ($name) {
-                return $object->$name;
-            };
-        };
-        $set = function ($name) {
-            return function ($object, $value) use ($name) {
-                $object->$name = $value;
-            };
-        };
+    function testStandardValues() {
+        $this->class->givenTheClass_WithTheBody('FileStore\StandardValues', '
+            /** @var string */
+            public $string;
 
-        $innerSerializer = new GenericSerializer(function () { return new \StdClass(); });
-        $innerSerializer->defineChild('one', new StringSerializer(), $get('one'), $set('one'));
-        $innerSerializer->defineChild('two', new StringSerializer(), $get('two'), $set('two'));
+            /** @var boolean */
+            public $boolean;
 
-        $serializer = new JsonSerializer(function () { return new \StdClass(); });
-        $serializer->defineChild('string', new StringSerializer(), $get('string'), $set('string'));
-        $serializer->defineChild('date', new DateTimeSerializer(), $get('date'), $set('date'));
-        $serializer->defineChild('inner', $innerSerializer, $get('inner'), $set('inner'));
+            /** @var float */
+            public $float;
 
-        $this->store = new FileStore($serializer, $this->tmpDir);
+            /** @var null|string */
+            public $null;
 
-        $entity = new \StdClass();
-        $entity->string = "foo";
-        $entity->date = new \DateTime('2001-01-01');
-        $entity->inner = new \StdClass();
-        $entity->inner->one = 'uno';
-        $entity->inner->two = 'dos';
+            /** @var \DateTime */
+            public $date;
+        ');
+        $this->givenTheEntityIsAnInstanceOf('FileStore\StandardValues');
+        $this->givenAStoreFor('FileStore\StandardValues');
 
-        $this->store->create($entity, 'bar');
+        $this->givenISet_To('string', 'Some string');
+        $this->givenISet_To('boolean', true);
+        $this->givenISet_To('float', 3.1415);
+        $this->givenISet_To('date', new \DateTime('2001-02-03'));
 
-        $this->assertContent('bar', '{
-            "string": "foo",
-            "date": "2001-01-01T00:00:00+00:00",
-            "inner":{
+        $this->whenICreateTheEntityAs('foo');
+        $this->then_ShouldContain('foo', '{
+            "string": "Some string",
+            "boolean": true,
+            "float": 3.1415,
+            "null": null,
+            "date": "2001-02-03T00:00:00+00:00"
+        }');
+
+        $this->givenAStoreFor('FileStore\StandardValues');
+        $this->whenIRead('foo');
+        $this->thenTheEntityShouldBeAnInstanceOf('FileStore\StandardValues');
+        $this->then_ShouldBe('string', 'Some string');
+        $this->then_ShouldBe('date', new \DateTime('2001-02-03 +00:00'));
+    }
+    
+    function testArrayValues() {
+        $this->class->givenTheClass_WithTheBody('FileStore\ArrayValues', '
+            /** @var array|int[] */
+            public $integers;
+
+            /** @var array|string[] */
+            public $dictionary;
+
+            /** @var array|\DateTime[] */
+            public $dates;
+
+            /** @var array|array[]|int[][] */
+            public $deep;
+        ');
+        $this->givenTheEntityIsAnInstanceOf('FileStore\ArrayValues');
+        $this->givenAStoreFor('FileStore\ArrayValues');
+
+        $this->givenISet_To('integers', array(1, 42, 73, 12));
+        $this->givenISet_To('dictionary', array('one' => 'uno', 'two' => 'dos'));
+        $this->givenISet_To('dates', array(new \DateTime('2001-01-01'), new \DateTime('2002-02-02')));
+        $this->givenISet_To('deep', array(1 => array("one"), 2 => array("two")));
+
+        $this->whenICreateTheEntityAs('foo');
+        $this->then_ShouldContain('foo', '{
+            "integers": [1, 42, 73, 12],
+            "dictionary": {
                 "one": "uno",
                 "two": "dos"
+            },
+            "dates": [
+                "2001-01-01T00:00:00+00:00",
+                "2002-02-02T00:00:00+00:00"
+            ],
+            "deep": {
+                "1": ["one"],
+                "2": ["two"]
             }
         }');
 
-        $inflated = $this->store->read('bar');
-        $this->assertEquals($entity, $inflated);
+        $this->givenAStoreFor('FileStore\ArrayValues');
+        $this->whenIRead('foo');
+        $this->then_ShouldBe('integers', array(1, 42, 73, 12));
+        $this->then_ShouldBe('dates', array(new \DateTime('2001-01-01 +00'), new \DateTime('2002-02-02 +00')));
+    }
+
+    function testAmbiguousArrayValue() {
+        $this->class->givenTheClass_WithTheBody('FileStore\AmbiguousArrayValue', '
+            /** @var array|int[]|string[] */
+            public $ambiguous;
+        ');
+        $this->givenTheEntityIsAnInstanceOf('FileStore\AmbiguousArrayValue');
+        $this->whenITryToCreateAStoreFor('FileStore\AmbiguousArrayValue');
+        $this->try->thenTheException_ShouldBeThrown(
+            'Could not infer Serializer of [FileStore\AmbiguousArrayValue::ambiguous]: ' .
+            'Ambiguous type.');
+    }
+    
+    function testIdentifierTypes() {
+        $this->class->givenTheClass_WithTheBody('FileStore\Identifiers', '
+            /** @var string|\DateTime-ID */
+            public $string;
+
+            /** @var identifier\SomeClassId */
+            public $object;
+        ');
+        $this->class->givenTheClass('FileStore\identifier\SomeClass');
+        $this->class->givenTheClass_WithTheBody('FileStore\identifier\SomeClassId',
+            'function __toString() { return "foo"; }');
+        $this->givenTheEntityIsAnInstanceOf('FileStore\Identifiers');
+        $this->givenAStoreFor('FileStore\Identifiers');
+
+        $this->givenISet_To('string', 'the good old time');
+        $this->givenISet_ToAnInstanceOf('object', 'FileStore\identifier\SomeClassId');
+
+        $this->whenICreateTheEntityAs('foo');
+        $this->then_ShouldContain('foo', '{
+            "string": "the good old time",
+            "object": "foo"
+        }');
+
+        $this->givenAStoreFor('FileStore\Identifiers');
+        $this->whenIRead('foo');
+        $this->then_ShouldBe('string', "the good old time");
+        $this->then_ShouldBeAnInstanceOf('object', 'FileStore\identifier\SomeClassId');
+    }
+
+    function testEmbeddedObjects() {
+        $this->class->givenTheClass_WithTheBody('FileStore\Family', '
+            /** @var array|Child[] */
+            public $children;
+
+            function __construct() {
+                $this->children = array(
+                    new Child("Bart", new Pet("Santas little helper", new \DateTime("1990-12-24"))),
+                    new Child("Lisa", new Pet("Snowball", new \DateTime("1993-03-15")))
+                );
+            }
+        ');
+        $this->class->givenTheClass_WithTheBody('FileStore\Child', '
+            /** @var string */
+            public $name;
+
+            /** @var Pet */
+            public $pet;
+
+            function __construct($name, $pet) {
+                $this->name = $name;
+                $this->pet = $pet;
+            }
+        ');
+        $this->class->givenTheClass_WithTheBody('FileStore\Pet', '
+            /** @var string */
+            public $name;
+
+            /** @var \DateTime */
+            public $birthDate;
+
+            function __construct($name, $birthDate) {
+                $this->name = $name;
+                $this->birthDate = $birthDate;
+            }
+        ');
+        $this->givenTheEntityIsAnInstanceOf('FileStore\Family');
+        $this->givenAStoreFor('FileStore\Family');
+
+        $this->whenICreateTheEntityAs('simpsons');
+        $this->then_ShouldContain('simpsons', '{
+            "children": [
+                {
+                    "name": "Bart",
+                    "pet": {
+                        "name": "Santas little helper",
+                        "birthDate": "1990-12-24T00:00:00+00:00"
+                    }
+                },
+                {
+                    "name": "Lisa",
+                    "pet": {
+                        "name": "Snowball",
+                        "birthDate": "1993-03-15T00:00:00+00:00"
+                    }
+                }
+            ]
+        }');
     }
 
     ############################# SET-UP ##############################
 
+    private $tmpDir;
+
+    private $entity;
+
     /** @var FileStore */
     private $store;
-
-    private $tmpDir;
 
     protected function setUp() {
         parent::setUp();
@@ -165,35 +284,37 @@ class FileStoreTest extends Specification {
         $this->clear($this->tmpDir);
         mkdir($this->tmpDir, 0777, true);
 
-        $this->initStore();
-
         date_default_timezone_set('UTC');
+
+        $this->initStore();
     }
 
-    private function initStore() {
-        $this->store = FileStore::forClass(StoresTestEntity::$CLASS, $this->tmpDir);
+    protected function initStore() {
+        $serializer = new JsonSerializer(function () {
+            return new \StdClass();
+        });
+        $serializer->defineChild('one', new NoneSerializer(),
+            function ($object) {
+                return $object->one;
+            },
+            function ($object, $value) {
+                $object->one = $value;
+            }
+        );
+        $serializer->defineChild('two', new DateTimeSerializer(),
+            function ($object) {
+                return $object->two;
+            },
+            function ($object, $value) {
+                $object->two = $value;
+            }
+        );
+        $this->store = new FileStore($serializer, $this->tmpDir);
     }
 
     protected function tearDown() {
         $this->clear($this->tmpDir);
         parent::tearDown();
-    }
-
-    private function assertExists($key) {
-        $this->assertFileExists($this->tmpDir . DIRECTORY_SEPARATOR . $key);
-    }
-
-    private function assertNotExists($key) {
-        $this->assertFileNotExists($this->tmpDir . DIRECTORY_SEPARATOR . $key);
-    }
-
-    private function assertContent($key, $content) {
-        $this->assertEquals(json_decode($content, true),
-            json_decode(file_get_contents($this->tmpDir . DIRECTORY_SEPARATOR . $key), true));
-    }
-
-    private function assertRawContent($key, $content) {
-        $this->assertEquals($content, file_get_contents($this->tmpDir . DIRECTORY_SEPARATOR . $key));
     }
 
     private function clear($dir) {
@@ -205,5 +326,85 @@ class FileStoreTest extends Specification {
             }
         }
         @rmdir($dir);
+    }
+
+    private function givenAnEntityWith($one, $two) {
+        $this->entity = new \StdClass();
+        $this->entity->one = $one;
+        $this->entity->two = $two;
+    }
+
+    private function givenAFile_Containing($key, $content) {
+        $file = $this->tmpDir . DIRECTORY_SEPARATOR . $key;
+        @mkdir(dirname($file));
+        file_put_contents($file, $content);
+    }
+
+    private function givenISet_To($property, $value) {
+        $this->entity->$property = $value;
+    }
+
+    private function givenISet_ToAnInstanceOf($property, $class) {
+        $this->givenISet_To($property, new $class);
+    }
+
+    private function givenAStoreFor($class) {
+        $this->store = FileStore::forClass($class, $this->tmpDir);
+    }
+
+    private function givenTheEntityIsAnInstanceOf($class) {
+        $this->entity = new $class;
+    }
+
+    public function whenICreateTheEntityAs($file) {
+        $this->store->create($this->entity, $file);
+    }
+
+    private function whenITryToCreateAStoreFor($class) {
+        $that = $this;
+        $this->try->tryTo(function () use ($class, $that) {
+            $that->givenAStoreFor($class);
+        });
+    }
+
+    private function whenIRead($key) {
+        $this->entity = $this->store->read($key);
+    }
+
+    private function whenIUpdateTheEntity() {
+        $this->store->update($this->entity);
+    }
+
+    private function whenIDelete($file) {
+        $this->store->delete($file);
+    }
+
+    private function thenThereShouldBeAFile($key) {
+        $this->assertFileExists($this->tmpDir . DIRECTORY_SEPARATOR . $key);
+    }
+
+    private function thenThereShouldBeNoFile($key) {
+        $this->assertFileNotExists($this->tmpDir . DIRECTORY_SEPARATOR . $key);
+    }
+
+    private function then_ShouldContain($key, $content) {
+        $this->assertEquals(json_decode($content, true),
+            json_decode(file_get_contents($this->tmpDir . DIRECTORY_SEPARATOR . $key), true));
+    }
+
+    private function then_ShouldBe($property, $value) {
+        $this->assertEquals($value, $this->entity->$property);
+    }
+
+    private function thenTheKeysShouldBe($keys) {
+        $this->assertEquals($keys, $this->store->keys());
+    }
+
+    private function thenTheEntityShouldBeAnInstanceOf($class) {
+        $this->assertInstanceOf($class, $this->entity);
+    }
+
+    private function then_ShouldBeAnInstanceOf($property, $class) {
+        $this->assertInstanceOf($class, $this->entity->$property);
     }
 }

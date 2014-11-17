@@ -1,20 +1,22 @@
 <?php
 namespace watoki\stores\file;
 
+use watoki\reflect\Type;
 use watoki\reflect\type\ArrayType;
 use watoki\reflect\type\ClassType;
+use watoki\reflect\type\IdentifierObjectType;
+use watoki\reflect\type\IdentifierType;
 use watoki\reflect\type\NullableType;
 use watoki\reflect\type\PrimitiveType;
-use watoki\reflect\Type;
+use watoki\stores\common\CallbackSerializer;
+use watoki\stores\common\factories\ClassSerializerFactory;
 use watoki\stores\common\factories\SimpleSerializerFactory;
 use watoki\stores\common\GenericSerializer;
+use watoki\stores\common\NoneSerializer;
 use watoki\stores\common\Reflector;
+use watoki\stores\exception\EntityNotFoundException;
 use watoki\stores\file\serializers\ArraySerializer;
 use watoki\stores\file\serializers\DateTimeSerializer;
-use watoki\stores\common\factories\CallbackSerializerFactory;
-use watoki\stores\common\factories\ClassSerializerFactory;
-use watoki\stores\common\NoneSerializer;
-use watoki\stores\exception\EntityNotFoundException;
 use watoki\stores\file\serializers\JsonSerializer;
 use watoki\stores\file\serializers\NullableSerializer;
 use watoki\stores\GeneralStore;
@@ -72,6 +74,21 @@ class FileStore extends GeneralStore {
         $registry->add(new SimpleSerializerFactory(PrimitiveType::$CLASS,
             function () {
                 return new NoneSerializer();
+            }));
+        $registry->add(new SimpleSerializerFactory(IdentifierObjectType::$CLASS,
+            function (IdentifierObjectType $type) use ($registry) {
+                return new CallbackSerializer(
+                    function ($object) {
+                        return (string)$object;
+                    },
+                    function ($serialized) use ($type) {
+                        return $type->inflate($serialized);
+                    }
+                );
+            }));
+        $registry->add(new SimpleSerializerFactory(IdentifierType::$CLASS,
+            function (IdentifierType $type) use ($registry) {
+                return $registry->get($type->getPrimitive());
             }));
 
         return $registry;

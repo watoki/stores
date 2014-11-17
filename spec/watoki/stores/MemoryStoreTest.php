@@ -1,7 +1,6 @@
 <?php
 namespace spec\watoki\stores;
 
-use spec\watoki\stores\fixtures\StoresTestEntity;
 use watoki\scrut\Specification;
 use watoki\stores\memory\MemoryStore;
 
@@ -16,10 +15,10 @@ class MemoryStoreTest extends Specification {
     }
 
     function testCreate() {
-        $entity1 = new StoresTestEntity(true, 42, 1.6, "Hi", new \DateTime());
+        $entity1 = $this->createEntity('one');
         $this->store->create($entity1);
 
-        $entity2 = new StoresTestEntity(true, 42, 1.6, "Hi", new \DateTime());
+        $entity2 = $this->createEntity('two');
         $this->store->create($entity2);
 
         $this->assertNotEquals($this->store->getKey($entity1), $this->store->getKey($entity2));
@@ -28,7 +27,7 @@ class MemoryStoreTest extends Specification {
     }
 
     function testReadWrongId() {
-        $this->store->create(new StoresTestEntity(true, 42, 1.6, "Hi", new \DateTime()));
+        $this->store->create($this->createEntity('foo'));
 
         try {
             $this->store->read(12);
@@ -39,11 +38,17 @@ class MemoryStoreTest extends Specification {
     }
 
     function testDelete() {
-        $entity = new StoresTestEntity(true, 42, 1.6, "Hi", new \DateTime());
+        $entity = $this->createEntity('bar');
         $this->store->create($entity);
         $this->store->delete($this->store->getKey($entity));
         $this->assertEmpty($this->store->keys());
 
+    }
+
+    private function createEntity($id) {
+        $entity = new \StdClass;
+        $entity->id = $id;
+        return $entity;
     }
 
 } 

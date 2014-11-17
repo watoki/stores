@@ -2,289 +2,332 @@
 namespace spec\watoki\stores;
 
 use spec\watoki\stores\fixtures\StoresTestDatabase;
-use spec\watoki\stores\fixtures\StoresTestEntity;
 use watoki\scrut\Specification;
+use watoki\stores\sqlite\serializers\CallbackSqliteSerializer;
 use watoki\stores\sqlite\serializers\CompositeSerializer;
 use watoki\stores\sqlite\serializers\IntegerSerializer;
+use watoki\stores\sqlite\serializers\NullableSerializer;
 use watoki\stores\sqlite\serializers\StringSerializer;
 use watoki\stores\sqlite\SqliteStore;
 
 class SqliteStoreTest extends Specification {
 
     function testCreateTable() {
-        $this->createFullTable();
-        $this->assertLogged('CREATE TABLE IF NOT EXISTS StoresTestEntity (' .
-            '"id" INTEGER PRIMARY KEY AUTOINCREMENT, ' .
-            '"boolean" INTEGER NOT NULL, ' .
-            '"integer" INTEGER NOT NULL, ' .
-            '"float" FLOAT NOT NULL, ' .
-            '"string" TEXT NOT NULL, ' .
-            '"dateTime" TEXT(32) NOT NULL, ' .
-            '"null" TEXT DEFAULT NULL, ' .
-            '"nullDateTime" TEXT(32) DEFAULT NULL, ' .
-            '"array" TEXT NOT NULL, ' .
-            '"child__one" TEXT DEFAULT NULL, ' .
-            '"child__two" INTEGER NOT NULL, ' .
-            '"child__child__foo" TEXT DEFAULT NULL'.
-            '); -- []');
-    }
+        $this->givenASerializerWithTheDefinition(array('one' => 'FOO', 'two' => 'BAR', 'three' => 'BAZ'));
+        $this->whenICreateTheTableFor(array('one', 'two'));
 
-    function testCreatePartialTable() {
-        $this->store->createTable(array('boolean', 'dateTime', 'string'));
-        $this->assertLogged('CREATE TABLE IF NOT EXISTS StoresTestEntity (' .
+        $this->then_ShouldBeExecuted('CREATE TABLE IF NOT EXISTS MyTable (' .
             '"id" INTEGER PRIMARY KEY AUTOINCREMENT, ' .
-            '"boolean" INTEGER NOT NULL, ' .
-            '"string" TEXT NOT NULL, ' .
-            '"dateTime" TEXT(32) NOT NULL' .
-            '); -- []');
+            '"one" FOO, ' .
+            '"two" BAR); ' .
+            '-- []');
     }
 
     function testCreateDefaultNullColumn() {
-        $this->store->createTable(array('boolean'));
-        $this->store->createColumn('string');
-        $this->assertLogged('ALTER TABLE StoresTestEntity ADD COLUMN "string" TEXT DEFAULT NULL ' .
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer(),
+            'two' => new NullableSerializer(new StringSerializer()),
+        ));
+        $this->whenICreateTheTableFor(array('one'));
+        $this->whenICreateTheColumn('two');
+
+        $this->then_ShouldBeExecuted('ALTER TABLE MyTable ADD COLUMN "two" TEXT DEFAULT NULL ' .
             '-- []');
     }
 
     function testCreateNonNullColumn() {
-        $this->store->createTable(array('boolean'));
-        $this->store->createColumn('integer', 0);
-        $this->assertLogged('ALTER TABLE StoresTestEntity ADD COLUMN "integer" INTEGER NOT NULL DEFAULT \'0\' ' .
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer(),
+            'two' => new IntegerSerializer(),
+        ));
+        $this->whenICreateTheTableFor(array('one'));
+        $this->whenICreateTheColumn_WithDefault('two', 0);
+
+        $this->then_ShouldBeExecuted('ALTER TABLE MyTable ADD COLUMN "two" INTEGER NOT NULL DEFAULT \'0\' ' .
             '-- []');
     }
 
     function testDropTable() {
-        $this->createFullTable();
-        $this->store->dropTable();
-        $this->assertLogged('DROP TABLE StoresTestEntity; ' .
+        $this->givenASerializerWithTheDefinition(array('one' => 'FOO'));
+        $this->givenICreatedTheFullTable();
+
+        $this->whenIDropTheTable();
+        $this->then_ShouldBeExecuted('DROP TABLE MyTable; ' .
             '-- []');
     }
 
     function testCreate() {
-        $this->createFullTable();
-        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'), array("some" => array("here", "there"))));
-        $this->assertLogged('INSERT INTO StoresTestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array", "child__one", "child__two", "child__child__foo") ' .
-            'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :nullDateTime, :array, :child__one, :child__two, :child__child__foo)' .
-            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01T00:00:00+00:00","null":null,"nullDateTime":null,' .
-            '"array":"{\"some\":[\"here\",\"there\"]}","child__one":"uno","child__two":"dos","child__child__foo":"bar"}');
-        $this->assertTableEquals(array(
-            array(
-                'id' => "1",
-                'boolean' => "1",
-                'integer' => "42",
-                'float' => "1.6",
-                'string' => "Hello",
-                'dateTime' => "2001-01-01T00:00:00+00:00",
-                'null' => null,
-                'nullDateTime' => null,
-                'array' => "{\"some\":[\"here\",\"there\"]}",
-                "child__one" => "uno",
-                "child__two" => "dos",
-                "child__child__foo" => "bar"
-            )
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer(),
+            'two' => new IntegerSerializer(),
         ));
+        $this->givenICreatedTheFullTable();
+        $this->whenICreateTheEntity(array('one' => 'foo', 'two' => 'bar'));
+
+        $this->then_ShouldBeExecuted('INSERT INTO MyTable ("one", "two") VALUES (:one, :two) ' .
+            '-- {"one":"foo","two":"bar"}');
+
+        $this->whenICreateTheEntity(array('one' => 'me', 'two' => 'you'));
+        $this->thenTheTable_ShouldContain("MyTable", array(array(
+            'id' => '1',
+            'one' => 'foo',
+            'two' => 'bar'
+        ), array(
+            'id' => '2',
+            'one' => 'me',
+            'two' => 'you'
+        )));
     }
 
     function testCreateWithId() {
-        $this->createFullTable();
-        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')), 17);
-        $this->assertLogged('INSERT INTO StoresTestEntity ("boolean", "integer", "float", "string", "dateTime", "null", "nullDateTime", "array", "child__one", "child__two", "child__child__foo", "id") ' .
-            'VALUES (:boolean, :integer, :float, :string, :dateTime, :null, :nullDateTime, :array, :child__one, :child__two, :child__child__foo, :id)' .
-            ' -- {"boolean":1,"integer":42,"float":1.6,"string":"Hello","dateTime":"2001-01-01T00:00:00+00:00","null":null,"nullDateTime":null,' .
-            '"array":"[]","child__one":"uno","child__two":"dos","child__child__foo":"bar","id":17}');
-        $this->assertTableEquals(array(
-            array(
-                'id' => "17",
-                'boolean' => "1",
-                'integer' => "42",
-                'float' => "1.6",
-                'string' => "Hello",
-                'dateTime' => "2001-01-01T00:00:00+00:00",
-                'null' => null,
-                'nullDateTime' => null,
-                'array' => "[]",
-                "child__one" => "uno",
-                "child__two" => "dos",
-                "child__child__foo" => "bar"
-            )
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer()
         ));
+        $this->givenICreatedTheFullTable();
+
+        $this->whenICreateTheEntity_At(array('one' => 'foo'), 42);
+        $this->thenTheKeyOfTheEntityShouldBe(42);
+
+        $this->then_ShouldBeExecuted('INSERT INTO MyTable ("one", "id") VALUES (:one, :id) ' .
+            '-- {"one":"foo","id":42}');
+        $this->thenTheTable_ShouldContain("MyTable", array(array(
+            'id' => '42',
+            'one' => 'foo',
+        )));
     }
 
     function testRead() {
-        $this->createFullTable();
-        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer(),
+            'two' => new IntegerSerializer(),
+        ));
+        $this->givenICreatedTheFullTable();
+        $this->whenICreateTheEntity_at(array('one' => 'foo', 'two' => 42), 73);
+        $this->whenICreateTheEntity_at(array('one' => 'bar', 'two' => 12), 42);
 
-        $this->initStore();
-        $this->createFullTable();
-        /** @var StoresTestEntity $entity */
-        $entity = $this->store->read(1);
-        $this->assertLogged('SELECT * FROM StoresTestEntity WHERE "id" = ? LIMIT 1 ' .
-            '-- [1]');
+        $this->whenIRead(73);
+        $this->then_ShouldBeExecuted('SELECT * FROM MyTable WHERE "id" = ? LIMIT 1 -- [73]');
 
-        $this->assertSame(true, $entity->boolean);
-        $this->assertSame(42, $entity->integer);
-        $this->assertSame(1.6, $entity->float);
-        $this->assertSame('Hello', $entity->string);
-        $this->assertEquals('2001-01-01', $entity->dateTime->format('Y-m-d'));
-        $this->assertNull($entity->null);
-        $this->assertNull($entity->nullDateTime);
+        $this->thenTheKeyOfTheEntityShouldBe(73);
+        $this->thenTheProperty_ShouldBe('one', 'foo');
+        $this->thenTheProperty_ShouldBe('two', 42);
     }
 
     function testUpdate() {
-        $this->createFullTable();
-        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
-        $this->store->create($entity);
-
-        $entity->string = 'Hello World';
-        $this->store->update($entity);
-
-        $this->assertLogged('UPDATE StoresTestEntity SET ' .
-            '"boolean" = :boolean, ' .
-            '"integer" = :integer, ' .
-            '"float" = :float, ' .
-            '"string" = :string, ' .
-            '"dateTime" = :dateTime, ' .
-            '"null" = :null, ' .
-            '"nullDateTime" = :nullDateTime, ' .
-            '"array" = :array, ' .
-            '"child__one" = :child__one, ' .
-            '"child__two" = :child__two, ' .
-            '"child__child__foo" = :child__child__foo ' .
-            'WHERE id = :id ' .
-            '-- {' .
-            '"boolean":1,' .
-            '"integer":42,' .
-            '"float":1.6,' .
-            '"string":"Hello World",' .
-            '"dateTime":"2001-01-01T00:00:00+00:00",' .
-            '"null":null,' .
-            '"nullDateTime":null,' .
-            '"array":"[]",' .
-            '"child__one":"uno",' .
-            '"child__two":"dos",' .
-            '"child__child__foo":"bar",' .
-            '"id":1' .
-            '}');
-        $this->assertTableEquals(array(
-            array(
-                'id' => "1",
-                'boolean' => "1",
-                'integer' => "42",
-                'float' => "1.6",
-                'string' => "Hello World",
-                'dateTime' => "2001-01-01T00:00:00+00:00",
-                'null' => null,
-                'nullDateTime' => null,
-                'array' => "[]",
-                "child__one" => "uno",
-                "child__two" => "dos",
-                "child__child__foo" => "bar"
-            )
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer(),
+            'two' => new IntegerSerializer(),
         ));
+        $this->givenICreatedTheFullTable();
+        $this->whenICreateTheEntity(array('one' => 'foo', 'two' => 42));
+
+        $this->givenISetTheProperty_To('one', 'bar');
+        $this->givenISetTheProperty_To('two', 73);
+
+        $this->whenIUpdateTheEntity();
+        $this->then_ShouldBeExecuted('UPDATE MyTable SET "one" = :one, "two" = :two WHERE id = :id ' .
+            '-- {"one":"bar","two":73,"id":1}');
+        $this->thenTheTable_ShouldContain('MyTable', array(array(
+            'id' => '1',
+            'one' => 'bar',
+            'two' => '73'
+        )));
     }
 
     function testDelete() {
-        $this->createFullTable();
-        $this->store->create(new StoresTestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer(),
+            'two' => new IntegerSerializer(),
+        ));
+        $this->givenICreatedTheFullTable();
+        $this->whenICreateTheEntity_At(array('one' => 'bar', 'two' => 33), 3);
+        $this->whenICreateTheEntity_At(array('one' => 'foo', 'two' => 42), 12);
 
-        $entity = new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01'));
-        $this->store->create($entity);
+        $this->whenIDelete(12);
+        $this->then_ShouldBeExecuted('DELETE FROM MyTable WHERE id = ? -- [12]');
 
-        $this->store->delete($this->store->getKey($entity));
-
-        $this->assertLogged('DELETE FROM StoresTestEntity WHERE id = ? ' .
-            '-- [2]');
-        $this->assertTableSize(1);
+        $this->thenTheTable_ShouldContain('MyTable', array(array(
+            'id' => '3',
+            'one' => 'bar',
+            'two' => '33'
+        )));
     }
 
     function testReadBy() {
-        $this->createFullTable();
-        $this->store->create(new StoresTestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
-        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer(),
+            'two' => new IntegerSerializer(),
+        ));
+        $this->givenICreatedTheFullTable();
+        $this->whenICreateTheEntity_At(array('one' => 'bar', 'two' => 33), 3);
+        $this->whenICreateTheEntity_At(array('one' => 'foo', 'two' => 42), 12);
+        $this->whenICreateTheEntity_At(array('one' => 'bar', 'two' => 23), 7);
 
-        /** @var \spec\watoki\stores\fixtures\StoresTestEntity $entity */
-        $entity = $this->store->readBy('integer', 42);
-        $this->assertSame(42, $entity->integer);
-        $this->assertSame('Hello', $entity->string);
+        $this->entity = $this->createStore()->readBy('two', 42);
 
-        $this->assertLogged('SELECT * FROM StoresTestEntity WHERE "integer" = ? LIMIT 1 ' .
-            '-- [42]');
+        $this->then_ShouldBeExecuted('SELECT * FROM MyTable WHERE "two" = ? LIMIT 1 -- [42]');
+        $this->thenTheProperty_ShouldBe('one', 'foo');
     }
 
     function testReadAll() {
-        $this->createFullTable();
-        $this->store->create(new StoresTestEntity(false, 17, 1.6, 'Hello', new \DateTime()));
-        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello', new \DateTime('2001-01-01')));
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer(),
+            'two' => new IntegerSerializer(),
+        ));
+        $this->givenICreatedTheFullTable();
+        $this->whenICreateTheEntity_At(array('one' => 'bar', 'two' => 33), 3);
+        $this->whenICreateTheEntity_At(array('one' => 'foo', 'two' => 42), 12);
+        $this->whenICreateTheEntity_At(array('one' => 'bar', 'two' => 23), 7);
 
-        /** @var \spec\watoki\stores\fixtures\StoresTestEntity[] $all */
-        $all = $this->store->readAll();
-        $this->assertCount(2, $all);
+        $all = $this->createStore()->readAll();
+        $this->assertCount(3, $all);
 
-        $this->assertLogged('SELECT * FROM StoresTestEntity ' .
-            '-- []');
+        $this->then_ShouldBeExecuted('SELECT * FROM MyTable -- []');
     }
 
     function testReadAllBy() {
-        $this->createFullTable();
-        $this->store->create(new StoresTestEntity(true, 42, 1.6, 'Hello World', new \DateTime()));
-        $this->store->create(new StoresTestEntity(false, 17, 1.6, 'Hello Me', new \DateTime()));
-        $this->store->create(new StoresTestEntity(false, 42, 1.6, 'Hello You', new \DateTime()));
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer(),
+            'two' => new IntegerSerializer(),
+        ));
+        $this->givenICreatedTheFullTable();
+        $this->whenICreateTheEntity_At(array('one' => 'foo', 'two' => 33), 3);
+        $this->whenICreateTheEntity_At(array('one' => 'foo', 'two' => 42), 12);
+        $this->whenICreateTheEntity_At(array('one' => 'bar', 'two' => 23), 7);
 
-        /** @var StoresTestEntity[] $all */
-        $all = $this->store->readAllBy('integer', 42);
+        $all = $this->createStore()->readAllBy('one', 'foo');
         $this->assertCount(2, $all);
 
-        $this->assertLogged('SELECT * FROM StoresTestEntity WHERE "integer" = ? ' .
-            '-- [42]');
+        $this->then_ShouldBeExecuted('SELECT * FROM MyTable WHERE "one" = ? -- ["foo"]');
     }
 
     function testListKeys() {
-        $this->createFullTable();
-        $e = new StoresTestEntity(true, 42, 1.6, 'Hello World', new \DateTime());
-        $this->store->create($e, 42);
-        $this->store->create($e, 12);
-        $this->store->create($e, 6);
+        $this->givenACompositeSerializerWith(array(
+            'one' => new StringSerializer(),
+            'two' => new IntegerSerializer(),
+        ));
+        $this->givenICreatedTheFullTable();
+        $this->whenICreateTheEntity_At(array('one' => 'foo', 'two' => 33), 3);
+        $this->whenICreateTheEntity_At(array('one' => 'foo', 'two' => 42), 12);
+        $this->whenICreateTheEntity_At(array('one' => 'bar', 'two' => 23), 7);
 
         $keys = $this->store->keys();
         sort($keys);
 
-        $this->assertEquals(array(6, 12, 42), $keys);
+        $this->assertEquals(array(3, 7, 12), $keys);
     }
 
     ####################### SET-UP #####################
 
-    /** @var SqliteStore */
-    private $store;
-
     /** @var StoresTestDatabase */
     private $database;
 
-    /** @var CompositeSerializer */
-    private $entitySerializer;
+    /** @var SqliteStore */
+    private $store;
+
+    /** @var \watoki\stores\sqlite\SqliteSerializer */
+    private $serializer;
+
+    private $entity;
 
     protected function setUp() {
         parent::setUp();
         $this->database = new StoresTestDatabase(new \PDO('sqlite::memory:'));
-        $this->initStore();
     }
 
-    private function initStore() {
-        $this->store = SqliteStore::forClass(StoresTestEntity::$CLASS, $this->database);
+    private function createStore() {
+        $this->store = new SqliteStore($this->serializer, 'MyTable', $this->database);
+        return $this->store;
     }
 
-    private function assertLogged($string) {
+    private function givenASerializerWithTheDefinition($definition) {
+        $empty = function () {
+        };
+        $this->serializer = new CallbackSqliteSerializer($empty, $empty, $definition);
+    }
+
+    private function givenACompositeSerializerWith($children) {
+        $this->serializer = new CompositeSerializer(function () {
+            return new \StdClass;
+        });
+        foreach ($children as $child => $serializer) {
+            $this->serializer->defineChild($child, $serializer,
+                function ($object) use ($child) {
+                    return $object->$child;
+                },
+                function ($object, $value) use ($child) {
+                    $object->$child = $value;
+                }
+            );
+        }
+    }
+
+    private function givenAnEntityWith($fields) {
+        $this->entity = new \StdClass;
+        foreach ($fields as $key => $value) {
+            $this->entity->$key = $value;
+        }
+    }
+
+    private function givenICreatedTheFullTable() {
+        $this->whenICreateTheTableFor(array_keys($this->serializer->getDefinition()));
+    }
+
+    private function givenISetTheProperty_To($property, $value) {
+        $this->entity->$property = $value;
+    }
+
+    private function whenICreateTheTableFor($fields) {
+        $this->createStore()->createTable($fields);
+    }
+
+    private function whenICreateTheColumn($column) {
+        $this->createStore()->createColumn($column);
+    }
+
+    private function whenICreateTheColumn_WithDefault($column, $default) {
+        $this->createStore()->createColumn($column, $default);
+    }
+
+    private function whenIDropTheTable() {
+        $this->createStore()->dropTable();
+    }
+
+    private function whenICreateTheEntity($fields) {
+        $this->givenAnEntityWith($fields);
+        $this->createStore()->create($this->entity);
+    }
+
+    private function whenICreateTheEntity_At($fields, $id) {
+        $this->givenAnEntityWith($fields);
+        $this->createStore()->create($this->entity, $id);
+    }
+
+    private function whenIRead($id) {
+        $this->entity = $this->createStore()->read($id);
+    }
+
+    private function whenIUpdateTheEntity() {
+        $this->store->update($this->entity);
+    }
+
+    private function whenIDelete($key) {
+        $this->store->delete($key);
+    }
+
+    private function then_ShouldBeExecuted($string) {
         $this->assertEquals($string, $this->database->log);
     }
 
-    private function assertTableEquals($array) {
-        $this->assertEquals(json_encode($array), json_encode($this->database->readAll('select * from ' . 'StoresTestEntity;')));
+    private function thenTheTable_ShouldContain($table, $array) {
+        $this->assertEquals(json_encode($array), json_encode($this->database->readAll("select * from $table;")));
     }
 
-    private function assertTableSize($int) {
-        $this->assertCount($int, $this->database->readAll('select * from ' . 'StoresTestEntity;'));
+    private function thenTheKeyOfTheEntityShouldBe($key) {
+        $this->assertEquals($key, $this->store->getKey($this->entity));
     }
 
-    private function createFullTable() {
-        $this->store->createTable(array('id', 'boolean', 'integer', 'float', 'string', 'dateTime', 'null', 'nullDateTime', 'array', 'child'));
+    private function thenTheProperty_ShouldBe($property, $value) {
+        $this->assertEquals($value, $this->entity->$property);
     }
 }

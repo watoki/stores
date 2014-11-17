@@ -6,11 +6,12 @@ use watoki\reflect\type\ArrayType;
 use watoki\reflect\type\BooleanType;
 use watoki\reflect\type\ClassType;
 use watoki\reflect\type\FloatType;
+use watoki\reflect\type\IdentifierObjectType;
+use watoki\reflect\type\IdentifierType;
 use watoki\reflect\type\IntegerType;
 use watoki\reflect\type\NullableType;
 use watoki\reflect\type\StringType;
 use watoki\reflect\Type;
-use watoki\stores\common\factories\CallbackSerializerFactory;
 use watoki\stores\common\factories\ClassSerializerFactory;
 use watoki\stores\common\factories\SimpleSerializerFactory;
 use watoki\stores\common\factories\StaticSerializerFactory;
@@ -19,6 +20,7 @@ use watoki\stores\GeneralStore;
 use watoki\stores\SerializerRegistry;
 use watoki\stores\sqlite\serializers\ArraySerializer;
 use watoki\stores\sqlite\serializers\BooleanSerializer;
+use watoki\stores\sqlite\serializers\CallbackSqliteSerializer;
 use watoki\stores\sqlite\serializers\CompositeSerializer;
 use watoki\stores\sqlite\serializers\DateTimeSerializer;
 use watoki\stores\sqlite\serializers\FloatSerializer;
@@ -54,10 +56,11 @@ class SqliteStore extends GeneralStore {
     /**
      * @param string $class
      * @param Database $database
+     * @param null|\watoki\stores\SerializerRegistry $registry
      * @return SqliteStore
      */
-    public static function forClass($class, Database $database) {
-        $registry = self::registerDefaultSerializers(new SerializerRegistry());
+    public static function forClass($class, Database $database, SerializerRegistry $registry = null) {
+        $registry = self::registerDefaultSerializers($registry ?: new SerializerRegistry());
 
         $reflector = new Reflector($class, $registry);
         $serializer = $reflector->create(CompositeSerializer::$CLASS);
@@ -95,6 +98,22 @@ class SqliteStore extends GeneralStore {
             function (ClassType $type) use ($registry) {
                 $reflector = new Reflector($type->getClass(), $registry);
                 return $reflector->create(CompositeSerializer::$CLASS);
+            }));
+        $registry->add(new SimpleSerializerFactory(IdentifierObjectType::$CLASS,
+            function (IdentifierObjectType $type) use ($registry) {
+                return new CallbackSqliteSerializer(
+                    function ($object) {
+                        return (string)$object;
+                    },
+                    function ($serialized) use ($type) {
+                        return $type->inflate($serialized);
+                    },
+                    'TEXT DEFAULT NULL'
+                );
+            }));
+        $registry->add(new SimpleSerializerFactory(IdentifierType::$CLASS,
+            function (IdentifierType $type) use ($registry) {
+                return $registry->get($type->getPrimitive());
             }));
 
         return $registry;
