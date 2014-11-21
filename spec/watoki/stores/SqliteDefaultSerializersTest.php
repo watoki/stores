@@ -233,6 +233,10 @@ class SqliteDefaultSerializersTest extends Specification {
         parent::setUp();
         $this->database = new StoresTestDatabase(new \PDO('sqlite::memory:'));
         $this->registry = new SerializerRegistry();
+
+        if (!class_exists('DateTimeImmutable')) {
+            $this->class->givenTheClass_Extending_WithTheBody('DateTimeImmutable', 'DateTime', '');
+        }
     }
 
     private function givenTheEntityIsAnInstanceOf($class) {
