@@ -21,10 +21,10 @@ use watoki\stores\GeneralStore;
 use watoki\stores\SerializerRegistry;
 use watoki\stores\sqlite\serializers\ArraySerializer;
 use watoki\stores\sqlite\serializers\BooleanSerializer;
-use watoki\stores\sqlite\serializers\CallbackSqliteSerializer;
 use watoki\stores\sqlite\serializers\CompositeSerializer;
 use watoki\stores\sqlite\serializers\DateTimeSerializer;
 use watoki\stores\sqlite\serializers\FloatSerializer;
+use watoki\stores\sqlite\serializers\IdentifierObjectSerializer;
 use watoki\stores\sqlite\serializers\IntegerSerializer;
 use watoki\stores\sqlite\serializers\NullableSerializer;
 use watoki\stores\sqlite\serializers\StringSerializer;
@@ -61,7 +61,7 @@ class SqliteStore extends GeneralStore {
      * @return SqliteStore
      */
     public static function forClass($class, Database $database, SerializerRegistry $registry = null) {
-        $registry = self::registerDefaultSerializers($registry ?: new SerializerRegistry());
+        $registry = self::registerDefaultSerializers($registry ? : new SerializerRegistry());
 
         $reflector = new Reflector($class, $registry);
         $serializer = $reflector->create(CompositeSerializer::$CLASS);
@@ -102,15 +102,7 @@ class SqliteStore extends GeneralStore {
             }));
         $registry->add(new SimpleSerializerFactory(IdentifierObjectType::$CLASS,
             function (IdentifierObjectType $type) use ($registry) {
-                return new CallbackSqliteSerializer(
-                    function ($object) {
-                        return (string)$object;
-                    },
-                    function ($serialized) use ($type) {
-                        return $type->inflate($serialized);
-                    },
-                    'TEXT DEFAULT NULL'
-                );
+                return new IdentifierObjectSerializer($type);
             }));
         $registry->add(new SimpleSerializerFactory(IdentifierType::$CLASS,
             function (IdentifierType $type) use ($registry) {

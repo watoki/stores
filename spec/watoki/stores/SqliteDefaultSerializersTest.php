@@ -132,6 +132,9 @@ class SqliteDefaultSerializersTest extends Specification {
 
             /** @var identifier\SomeClassId */
             public $object;
+
+            /** @var null|identifier\SomeClassId */
+            public $nullable;
         ');
         $this->class->givenTheClass('SqliteStore\identifier\SomeClass');
         $this->class->givenTheClass_WithTheBody('SqliteStore\identifier\SomeClassId',
@@ -146,7 +149,8 @@ class SqliteDefaultSerializersTest extends Specification {
         $this->thenTable_ShouldContain('Identifiers', '[{
             "id": 1,
             "string": "the good old time",
-            "object": "foo"
+            "object": "foo",
+            "nullable": null
         }]');
 
         $this->givenAStoreFor('SqliteStore\Identifiers');
