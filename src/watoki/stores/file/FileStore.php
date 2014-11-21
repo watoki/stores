@@ -14,7 +14,7 @@ use watoki\stores\common\factories\SimpleSerializerFactory;
 use watoki\stores\common\GenericSerializer;
 use watoki\stores\common\NoneSerializer;
 use watoki\stores\common\Reflector;
-use watoki\stores\exception\EntityNotFoundException;
+use watoki\stores\exception\NotFoundException;
 use watoki\stores\file\serializers\ArraySerializer;
 use watoki\stores\file\serializers\DateTimeSerializer;
 use watoki\stores\file\serializers\JsonSerializer;
@@ -96,7 +96,7 @@ class FileStore extends GeneralStore {
 
     protected function _read($id) {
         if (!file_exists($this->fileName($id))) {
-            throw new EntityNotFoundException("File [$id] does not exist.");
+            throw new NotFoundException("File [$id] does not exist.");
         }
         return $this->inflate(file_get_contents($this->fileName($id)), $id);
     }

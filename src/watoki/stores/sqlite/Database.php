@@ -32,13 +32,12 @@ class Database {
     /**
      * @param string $sql
      * @param array $variables
-     * @throws \PDOException If result is empty
-     * @return array
+     * @return mixed|null
      */
     public function readOne($sql, $variables = array()) {
         $result = $this->readAll($sql, $variables);
         if (empty($result)) {
-            throw new \PDOException("Empty result for [$sql, " . var_export($variables, true) . "]");
+            return null;
         }
         return $result[0];
     }

@@ -1,7 +1,7 @@
 <?php
 namespace watoki\stores\exception;
 
-class EntityNotFoundException extends \Exception {
+class NotFoundException extends \Exception {
 
     public static $CLASS = __CLASS__;
 }

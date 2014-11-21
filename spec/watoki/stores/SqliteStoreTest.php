@@ -3,7 +3,7 @@ namespace spec\watoki\stores;
 
 use spec\watoki\stores\fixtures\StoresTestDatabase;
 use watoki\scrut\Specification;
-use watoki\stores\exception\EntityNotFoundException;
+use watoki\stores\exception\NotFoundException;
 use watoki\stores\sqlite\serializers\CallbackSqliteSerializer;
 use watoki\stores\sqlite\serializers\CompositeSerializer;
 use watoki\stores\sqlite\serializers\IntegerSerializer;
@@ -119,8 +119,10 @@ class SqliteStoreTest extends Specification {
 
     function testReadNonExistingKey() {
         $this->givenACompositeSerializerWith(array());
+        $this->givenICreatedTheFullTable();
         $this->whenITryToRead(42);
-        $this->try->thenA_ShouldBeThrown(EntityNotFoundException::$CLASS);
+        $this->try->thenTheException_ShouldBeThrown('Empty result for [SELECT * FROM MyTable WHERE "id" = ? LIMIT 1] [42]');
+        $this->try->thenA_ShouldBeThrown(NotFoundException::$CLASS);
     }
 
     function testUpdate() {

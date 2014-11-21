@@ -3,7 +3,7 @@ namespace watoki\stores\memory;
 
 use watoki\stores\common\factories\CallbackSerializerFactory;
 use watoki\stores\common\NoneSerializer;
-use watoki\stores\exception\EntityNotFoundException;
+use watoki\stores\exception\NotFoundException;
 use watoki\stores\GeneralStore;
 use watoki\stores\SerializerRegistry;
 
@@ -30,7 +30,7 @@ class MemoryStore extends GeneralStore {
 
     protected function _read($id) {
         if (!isset($this->memory[$id])) {
-            throw new EntityNotFoundException("Entity with ID [$id] does not exist.");
+            throw new NotFoundException("Entity with ID [$id] does not exist.");
         }
         return $this->inflate($this->memory[$id], $id);
     }

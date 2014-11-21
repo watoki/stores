@@ -16,7 +16,7 @@ use watoki\stores\common\factories\ClassSerializerFactory;
 use watoki\stores\common\factories\SimpleSerializerFactory;
 use watoki\stores\common\factories\StaticSerializerFactory;
 use watoki\stores\common\Reflector;
-use watoki\stores\exception\EntityNotFoundException;
+use watoki\stores\exception\NotFoundException;
 use watoki\stores\GeneralStore;
 use watoki\stores\SerializerRegistry;
 use watoki\stores\sqlite\serializers\ArraySerializer;
@@ -216,11 +216,11 @@ class SqliteStore extends GeneralStore {
     }
 
     public function readQuery($sql, $variables = array()) {
-        try {
-            return $this->inflate($this->db->readOne($sql, $variables));
-        } catch (\PDOException $e) {
-            throw new EntityNotFoundException("Entity not found", 0, $e);
+        $row = $this->db->readOne($sql, $variables);
+        if (!$row) {
+            throw new NotFoundException("Empty result for [$sql] " . json_encode($variables));
         }
+        return $this->inflate($row);
     }
 
     public function readAll() {
