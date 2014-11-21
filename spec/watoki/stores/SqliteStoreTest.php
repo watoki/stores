@@ -3,6 +3,7 @@ namespace spec\watoki\stores;
 
 use spec\watoki\stores\fixtures\StoresTestDatabase;
 use watoki\scrut\Specification;
+use watoki\stores\exception\EntityNotFoundException;
 use watoki\stores\sqlite\serializers\CallbackSqliteSerializer;
 use watoki\stores\sqlite\serializers\CompositeSerializer;
 use watoki\stores\sqlite\serializers\IntegerSerializer;
@@ -10,6 +11,9 @@ use watoki\stores\sqlite\serializers\NullableSerializer;
 use watoki\stores\sqlite\serializers\StringSerializer;
 use watoki\stores\sqlite\SqliteStore;
 
+/**
+ * @property \watoki\scrut\ExceptionFixture try <-
+ */
 class SqliteStoreTest extends Specification {
 
     function testCreateTable() {
@@ -111,6 +115,12 @@ class SqliteStoreTest extends Specification {
         $this->thenTheKeyOfTheEntityShouldBe(73);
         $this->thenTheProperty_ShouldBe('one', 'foo');
         $this->thenTheProperty_ShouldBe('two', 42);
+    }
+
+    function testReadNonExistingKey() {
+        $this->givenACompositeSerializerWith(array());
+        $this->whenITryToRead(42);
+        $this->try->thenA_ShouldBeThrown(EntityNotFoundException::$CLASS);
     }
 
     function testUpdate() {
@@ -305,6 +315,13 @@ class SqliteStoreTest extends Specification {
 
     private function whenIRead($id) {
         $this->entity = $this->createStore()->read($id);
+    }
+
+    private function whenITryToRead($id) {
+        $store = $this->createStore();
+        $this->try->tryTo(function () use ($store, $id) {
+            $store->read($id);
+        });
     }
 
     private function whenIUpdateTheEntity() {
