@@ -30,6 +30,9 @@ class SqliteDefaultSerializersTest extends Specification {
 
             /** @var \DateTime */
             public $date;
+
+            /** @var \DateTimeImmutable */
+            public $immutableDate;
         ');
         $this->givenTheEntityIsAnInstanceOf('SqliteStore\StandardValues');
         $this->givenAStoreFor('SqliteStore\StandardValues');
@@ -38,6 +41,7 @@ class SqliteDefaultSerializersTest extends Specification {
         $this->givenISet_To('boolean', true);
         $this->givenISet_To('float', 3.1415);
         $this->givenISet_To('date', new \DateTime('2001-02-03'));
+        $this->givenISet_To('immutableDate', new \DateTimeImmutable('2003-02-01'));
 
         $this->whenICreateTheEntity();
         $this->thenTable_ShouldContain('StandardValues', '[{
@@ -46,7 +50,8 @@ class SqliteDefaultSerializersTest extends Specification {
             "boolean": true,
             "float": 3.1415,
             "null": null,
-            "date": "2001-02-03T00:00:00+00:00"
+            "date": "2001-02-03T00:00:00+00:00",
+            "immutableDate": "2003-02-01T00:00:00+00:00"
         }]');
 
         $this->givenAStoreFor('SqliteStore\StandardValues');

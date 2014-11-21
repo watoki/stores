@@ -12,7 +12,7 @@ class CompositeSerializer extends GenericSerializer implements SqliteSerializer 
     private static $SEPARATOR = '__';
 
     /** @var SqliteSerializer[] */
-    private $serializers;
+    private $serializers = [];
 
     /**
      * @param string $name

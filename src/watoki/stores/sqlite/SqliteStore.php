@@ -22,6 +22,7 @@ use watoki\stores\SerializerRegistry;
 use watoki\stores\sqlite\serializers\ArraySerializer;
 use watoki\stores\sqlite\serializers\BooleanSerializer;
 use watoki\stores\sqlite\serializers\CompositeSerializer;
+use watoki\stores\sqlite\serializers\DateTimeImmutableSerializer;
 use watoki\stores\sqlite\serializers\DateTimeSerializer;
 use watoki\stores\sqlite\serializers\FloatSerializer;
 use watoki\stores\sqlite\serializers\IdentifierObjectSerializer;
@@ -84,6 +85,7 @@ class SqliteStore extends GeneralStore {
         )));
 
         $registry->add(new ClassSerializerFactory('DateTime', new DateTimeSerializer()));
+        $registry->add(new ClassSerializerFactory('DateTimeImmutable', new DateTimeImmutableSerializer()));
 
         $registry->add(new SimpleSerializerFactory(NullableType::$CLASS,
             function (NullableType $type) use ($registry) {
