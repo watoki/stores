@@ -143,7 +143,7 @@ class FileStore extends GeneralStore {
         return $this->hasKey($id);
     }
 
-    private function fileName($id) {
+    protected function fileName($id) {
         return $this->root . DIRECTORY_SEPARATOR . $id;
     }
 }

@@ -15,6 +15,22 @@ use watoki\stores\file\serializers\JsonSerializer;
  */
 class FileStoreTest extends Specification {
 
+    function testCreateRawFile() {
+        $store = new RawFileStore($this->tmpDir);
+        $store->create(new File('Some text'), 'here');
+
+        $this->then_ShouldContain('here', 'Some text');
+    }
+
+    function testReadRawFile() {
+        $this->givenAFile_Containing('foo', 'more foo');
+
+        $store = new RawFileStore($this->tmpDir);
+        $read = $store->read('foo');
+
+        $this->assertEquals('more foo', $read->getContents());
+    }
+
     function testCreate() {
         $this->givenAnEntityWith('foo', new \DateTime('2001-01-01'));
         $this->whenICreateTheEntityAs('there/here');
@@ -24,13 +40,6 @@ class FileStoreTest extends Specification {
             "one": "foo",
             "two": "2001-01-01T00:00:00+00:00"
         }');
-    }
-
-    function testCreateRawFile() {
-        $store = new RawFileStore($this->tmpDir);
-        $store->create(new File('Some text'), 'here');
-
-        $this->then_ShouldContain('here', 'Some text');
     }
 
     function testRead() {

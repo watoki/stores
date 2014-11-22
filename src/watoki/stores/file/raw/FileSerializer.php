@@ -7,12 +7,17 @@ class FileSerializer implements Serializer {
 
     /**
      * @param \watoki\stores\file\raw\File $inflated
+     * @return mixed
      */
     public function serialize($inflated) {
-        return $inflated->content;
+        return $inflated->getContents();
     }
 
-    public function inflate($serialized) {
-        return new File($serialized);
+    /**
+     * @param string $file
+     * @return File
+     */
+    public function inflate($file) {
+        return new LazyFile($file);
     }
 }

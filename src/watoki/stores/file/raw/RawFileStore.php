@@ -1,6 +1,7 @@
 <?php
 namespace watoki\stores\file\raw;
 
+use watoki\stores\exception\NotFoundException;
 use watoki\stores\file\FileStore;
 
 class RawFileStore extends FileStore {
@@ -20,6 +21,16 @@ class RawFileStore extends FileStore {
      */
     public function read($id) {
         return parent::read($id);
+    }
+
+    protected function _read($id) {
+        $file = $this->fileName($id);
+
+        if (!file_exists($file)) {
+            throw new NotFoundException("File [$id] does not exist.");
+        }
+
+        return $this->inflate($file);
     }
 
 } 

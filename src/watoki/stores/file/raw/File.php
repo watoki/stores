@@ -5,10 +5,17 @@ class File {
 
     public static $CLASS = __CLASS__;
 
-    public $content;
+    private $contents;
 
-    function __construct($content) {
-        $this->content = $content;
+    function __construct($contents) {
+        $this->contents = $contents;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getContents() {
+        return $this->contents;
     }
 
 }
