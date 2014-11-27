@@ -141,6 +141,7 @@ class SqliteStore extends GeneralStore {
 
         $definitions = implode(', ', array_values($fields));
         $this->db->execute("CREATE TABLE IF NOT EXISTS {$this->getTableName()} ($definitions);");
+        return $this;
     }
 
     public function createColumn($property, $default = null) {
@@ -151,6 +152,7 @@ class SqliteStore extends GeneralStore {
             $definition .= ' DEFAULT ' . $this->db->quote($default);
         }
         $this->db->execute("ALTER TABLE {$this->getTableName()} ADD COLUMN \"$property\" $definition");
+        return $this;
     }
 
     public function dropTable() {
@@ -238,7 +240,9 @@ class SqliteStore extends GeneralStore {
     protected function inflateAll($rows, $collection = null) {
         $entities = $collection ? : new Set();
         foreach ($rows as $row) {
-            $entities[] = $this->inflate($row);
+            $entity = $this->inflate($row);
+            $entities[] = $entity;
+            $this->setKey($entity, $row['id']);
         }
         return $entities;
     }
