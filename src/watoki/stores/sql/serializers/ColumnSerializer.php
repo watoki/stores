@@ -1,9 +1,9 @@
 <?php
-namespace watoki\stores\sqlite\serializers;
+namespace watoki\stores\sql\serializers;
 
-use watoki\stores\sqlite\SqliteSerializer;
+use watoki\stores\sql\SqlSerializer;
 
-abstract class ColumnSerializer implements SqliteSerializer {
+abstract class ColumnSerializer implements SqlSerializer {
 
     /** @var bool */
     private $nullable = false;

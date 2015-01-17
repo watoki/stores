@@ -1,9 +1,9 @@
 <?php
-namespace watoki\stores\sqlite\serializers;
+namespace watoki\stores\sql\serializers;
 
-use watoki\stores\sqlite\SqliteSerializer;
+use watoki\stores\sql\SqlSerializer;
 
-class NullableSerializer implements SqliteSerializer {
+class NullableSerializer implements SqlSerializer {
 
     /** @var ColumnSerializer */
     private $serializer;

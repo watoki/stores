@@ -1,30 +1,30 @@
 <?php
-namespace watoki\stores\sqlite\serializers;
+namespace watoki\stores\sql\serializers;
 
 use watoki\stores\common\GenericSerializer;
 use watoki\stores\Serializer;
-use watoki\stores\sqlite\SqliteSerializer;
+use watoki\stores\sql\SqlSerializer;
 
-class CompositeSerializer extends GenericSerializer implements SqliteSerializer {
+class CompositeSerializer extends GenericSerializer implements SqlSerializer {
 
     public static $CLASS = __CLASS__;
 
     private static $SEPARATOR = '__';
 
-    /** @var SqliteSerializer[] */
+    /** @var SqlSerializer[] */
     private $serializers = [];
 
     /**
      * @param string $name
-     * @param SqliteSerializer|Serializer $serializer
+     * @param SqlSerializer|Serializer $serializer
      * @param callable $getter
      * @param null $setter
      * @throws \InvalidArgumentException if $serializer is not a SqliteSerializer
      * @return $this
      */
     public function defineChild($name, Serializer $serializer, $getter, $setter = null) {
-        if (!($serializer instanceof SqliteSerializer)) {
-            throw new \InvalidArgumentException('Serializer must implement [watoki\stores\sqlite\SqliteSerializer]');
+        if (!($serializer instanceof SqlSerializer)) {
+            throw new \InvalidArgumentException('Serializer must implement [watoki\stores\sql\SqlSerializer]');
         }
         $this->serializers[$name] = $serializer;
         return parent::defineChild($name, $serializer, $getter, $setter);

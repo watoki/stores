@@ -1,10 +1,10 @@
 <?php
-namespace watoki\stores\sqlite\serializers;
+namespace watoki\stores\sql\serializers;
 
 use watoki\stores\common\CallbackSerializer;
-use watoki\stores\sqlite\SqliteSerializer;
+use watoki\stores\sql\SqlSerializer;
 
-class CallbackSqliteSerializer extends CallbackSerializer implements SqliteSerializer {
+class CallbackSqlSerializer extends CallbackSerializer implements SqlSerializer {
 
     /** @var string|array */
     private $definition;

@@ -1,9 +1,9 @@
 <?php
-namespace watoki\stores\sqlite;
+namespace watoki\stores\sql;
 
 use watoki\stores\Serializer;
 
-interface SqliteSerializer extends Serializer {
+interface SqlSerializer extends Serializer {
 
     /**
      * @return string|array|string[] If array (indexed by column name), serialize() must return an array with same keys.

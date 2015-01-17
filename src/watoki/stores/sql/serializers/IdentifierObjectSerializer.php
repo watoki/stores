@@ -1,5 +1,5 @@
 <?php
-namespace watoki\stores\sqlite\serializers;
+namespace watoki\stores\sql\serializers;
 
 use watoki\reflect\type\IdentifierObjectType;
 

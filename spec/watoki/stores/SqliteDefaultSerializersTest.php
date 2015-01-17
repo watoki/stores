@@ -6,7 +6,7 @@ use watoki\reflect\type\ArrayType;
 use watoki\scrut\Specification;
 use watoki\stores\common\factories\SimpleSerializerFactory;
 use watoki\stores\SerializerRegistry;
-use watoki\stores\sqlite\serializers\CountedArraySerializer;
+use watoki\stores\sql\serializers\CountedArraySerializer;
 use watoki\stores\sqlite\SqliteStore;
 
 /**
@@ -220,7 +220,7 @@ class SqliteDefaultSerializersTest extends Specification {
 
     private $entity;
 
-    /** @var \watoki\stores\sqlite\Database */
+    /** @var \watoki\stores\sql\Database */
     private $database;
 
     /** @var SqliteStore */

@@ -1,7 +1,7 @@
 <?php
 namespace spec\watoki\stores\fixtures;
 
-use watoki\stores\sqlite\Database;
+use watoki\stores\sql\Database;
 
 class StoresTestDatabase extends Database {
 

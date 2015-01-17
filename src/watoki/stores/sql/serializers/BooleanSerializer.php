@@ -1,14 +1,14 @@
 <?php
-namespace watoki\stores\sqlite\serializers;
+namespace watoki\stores\sql\serializers;
 
-class IntegerSerializer extends ColumnSerializer {
+class BooleanSerializer extends ColumnSerializer {
 
     public function serialize($inflated) {
-        return $inflated;
+        return $inflated ? 1 : 0;
     }
 
     public function inflate($serialized) {
-        return intval($serialized);
+        return !!$serialized;
     }
 
     public function getColumnDefinition() {

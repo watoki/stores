@@ -4,11 +4,11 @@ namespace spec\watoki\stores;
 use spec\watoki\stores\fixtures\StoresTestDatabase;
 use watoki\scrut\Specification;
 use watoki\stores\exception\NotFoundException;
-use watoki\stores\sqlite\serializers\CallbackSqliteSerializer;
-use watoki\stores\sqlite\serializers\CompositeSerializer;
-use watoki\stores\sqlite\serializers\IntegerSerializer;
-use watoki\stores\sqlite\serializers\NullableSerializer;
-use watoki\stores\sqlite\serializers\StringSerializer;
+use watoki\stores\sql\serializers\CallbackSqlSerializer;
+use watoki\stores\sql\serializers\CompositeSerializer;
+use watoki\stores\sql\serializers\IntegerSerializer;
+use watoki\stores\sql\serializers\NullableSerializer;
+use watoki\stores\sql\serializers\StringSerializer;
 use watoki\stores\sqlite\SqliteStore;
 
 /**
@@ -237,7 +237,7 @@ class SqliteStoreTest extends Specification {
     /** @var SqliteStore */
     private $store;
 
-    /** @var \watoki\stores\sqlite\SqliteSerializer */
+    /** @var \watoki\stores\sql\SqlSerializer */
     private $serializer;
 
     private $entity;
@@ -255,7 +255,7 @@ class SqliteStoreTest extends Specification {
     private function givenASerializerWithTheDefinition($definition) {
         $empty = function () {
         };
-        $this->serializer = new CallbackSqliteSerializer($empty, $empty, $definition);
+        $this->serializer = new CallbackSqlSerializer($empty, $empty, $definition);
     }
 
     private function givenACompositeSerializerWith($children) {
