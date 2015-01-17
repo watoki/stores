@@ -21,7 +21,7 @@ class SqliteStore extends SqlStore {
      * @return string
      */
     protected function primaryKeyDefinition() {
-        return 'id INTEGER PRIMARY KEY AUTOINCREMENT';
+        return '"id" INTEGER PRIMARY KEY AUTOINCREMENT';
     }
 
     /**
