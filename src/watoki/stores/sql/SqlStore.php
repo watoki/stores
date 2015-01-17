@@ -2,6 +2,7 @@
 namespace watoki\stores\sql;
 
 use watoki\collections\Set;
+use watoki\reflect\Type;
 use watoki\reflect\type\ArrayType;
 use watoki\reflect\type\BooleanType;
 use watoki\reflect\type\ClassType;
@@ -11,7 +12,6 @@ use watoki\reflect\type\IdentifierType;
 use watoki\reflect\type\IntegerType;
 use watoki\reflect\type\NullableType;
 use watoki\reflect\type\StringType;
-use watoki\reflect\Type;
 use watoki\stores\common\factories\ClassSerializerFactory;
 use watoki\stores\common\factories\SimpleSerializerFactory;
 use watoki\stores\common\factories\StaticSerializerFactory;
@@ -135,7 +135,7 @@ class SqlStore extends GeneralStore {
                 $propertyName = substr($property, 0, strpos($property, '_'));
             }
             if (in_array($propertyName, $properties)) {
-                $fields[$property] = '"' . $property . '" ' . $definition;
+                $fields[$property] = $this->quote($property) . ' ' . $definition;
             }
         }
 
