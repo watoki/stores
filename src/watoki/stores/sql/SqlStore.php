@@ -151,7 +151,8 @@ class SqlStore extends GeneralStore {
         if (!is_null($default)) {
             $definition .= ' DEFAULT ' . $this->db->quote($default);
         }
-        $this->db->execute("ALTER TABLE {$this->getTableName()} ADD COLUMN \"$property\" $definition");
+        $property = $this->quote($property);
+        $this->db->execute("ALTER TABLE {$this->getTableName()} ADD COLUMN $property $definition");
         return $this;
     }
 
@@ -167,7 +168,7 @@ class SqlStore extends GeneralStore {
         }
 
         $quotedColumns = implode(', ', array_map(function ($key) {
-            return '"' . $key . '"';
+            return $this->quote($key);
         }, array_keys($columns)));
 
         $preparedColumns = implode(', ', array_map(function ($key) {
@@ -194,7 +195,7 @@ class SqlStore extends GeneralStore {
         $columns = $this->serialize($entity);
 
         $preparedColumns = implode(', ', array_map(function ($key) {
-            return '"' . $key . '" = :' . $key;
+            return $this->quote($key) . ' = :' . $key;
         }, array_keys($columns)));
 
         $columns['id'] = $this->getKey($entity);
@@ -210,11 +211,12 @@ class SqlStore extends GeneralStore {
     public function keys() {
         return array_map(function ($k) {
             return $k['id'];
-        }, $this->db->readAll("SELECT \"id\" FROM {$this->getTableName()};"));
+        }, $this->db->readAll("SELECT id FROM {$this->getTableName()};"));
     }
 
     public function readBy($column, $value) {
-        return $this->readQuery("SELECT * FROM {$this->getTableName()} WHERE \"$column\" = ? LIMIT 1", array($value));
+        $column = $this->quote($column);
+        return $this->readQuery("SELECT * FROM {$this->getTableName()} WHERE $column = ? LIMIT 1", array($value));
     }
 
     public function readQuery($sql, $variables = array()) {
@@ -230,7 +232,8 @@ class SqlStore extends GeneralStore {
     }
 
     public function readAllBy($column, $value) {
-        return $this->readAllQuery("SELECT * FROM {$this->getTableName()} WHERE \"$column\" = ?", array($value));
+        $column = $this->quote($column);
+        return $this->readAllQuery("SELECT * FROM {$this->getTableName()} WHERE $column = ?", array($value));
     }
 
     public function readAllQuery($sql, $variables = array()) {
@@ -251,7 +254,15 @@ class SqlStore extends GeneralStore {
      * @return string
      */
     protected function primaryKeyDefinition() {
-        return '"id" INTEGER PRIMARY KEY AUTO_INCREMENT';
+        return 'id INTEGER PRIMARY KEY AUTO_INCREMENT';
+    }
+
+    /**
+     * @param string $key
+     * @return string
+     */
+    protected function quote($key) {
+        return '`' . $key . '`';
     }
 
 }

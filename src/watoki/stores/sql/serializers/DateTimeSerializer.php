@@ -20,6 +20,6 @@ class DateTimeSerializer extends ColumnSerializer {
     }
 
     protected function getColumnDefinition() {
-        return 'TEXT(32)';
+        return 'VARCHAR(32)';
     }
 }
