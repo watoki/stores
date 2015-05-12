@@ -291,7 +291,7 @@ class FileStoreTest extends Specification {
 
         $this->tmpDir = __DIR__ . DIRECTORY_SEPARATOR . '_tmp_';
         $this->clear($this->tmpDir);
-        mkdir($this->tmpDir, 0777, true);
+        @mkdir($this->tmpDir, 0777, true);
 
         date_default_timezone_set('UTC');
 
