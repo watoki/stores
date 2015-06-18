@@ -14,17 +14,16 @@
     ],
     "require": {
         "php": ">=5.4",
-        "watoki/collections": "*",
-        "watoki/reflect": "*"
+        "watoki/collections": "1.0",
+        "watoki/reflect": "0.3"
     },
     "require-dev": {
-        "watoki/scrut": "*"
+        "watoki/scrut": "0.3"
     },
     "autoload": {
         "psr-0": {
             "watoki\\stores": "src/",
             "spec\\watoki\\stores": ""
         }
-    },
-    "minimum-stability": "dev"
+    }
 }
