@@ -4,8 +4,6 @@ namespace spec\watoki\stores;
 use watoki\scrut\Specification;
 use watoki\stores\common\NoneSerializer;
 use watoki\stores\file\FileStore;
-use watoki\stores\file\raw\File;
-use watoki\stores\file\raw\RawFileStore as RawFileStore;
 use watoki\stores\file\serializers\DateTimeSerializer;
 use watoki\stores\file\serializers\JsonSerializer;
 
@@ -14,22 +12,6 @@ use watoki\stores\file\serializers\JsonSerializer;
  * @property \watoki\scrut\ExceptionFixture try <-
  */
 class FileStoreTest extends Specification {
-
-    function testCreateRawFile() {
-        $store = new RawFileStore($this->tmpDir);
-        $store->create(new File('Some text'), 'here');
-
-        $this->then_ShouldContain('here', 'Some text');
-    }
-
-    function testReadRawFile() {
-        $this->givenAFile_Containing('foo', 'more foo');
-
-        $store = new RawFileStore($this->tmpDir);
-        $read = $store->read('foo');
-
-        $this->assertEquals('more foo', $read->getContents());
-    }
 
     function testCreate() {
         $this->givenAnEntityWith('foo', new \DateTime('2001-01-01'));
@@ -52,6 +34,17 @@ class FileStoreTest extends Specification {
 
         $this->then_ShouldBe('one', 'foo');
         $this->then_ShouldBe('two', new \DateTime('2001-01-01 +00:00'));
+    }
+
+    function testNotExisting() {
+        $this->whenITryToRead('not/existing');
+        $this->try->thenTheException_ShouldBeThrown('File [not/existing] does not exist.');
+    }
+
+    function testFoldersAreNotFiles() {
+        $this->givenAFile_Containing('foo/bar', '');
+        $this->whenITryToRead('foo');
+        $this->try->thenTheException_ShouldBeThrown('File [foo] does not exist.');
     }
 
     function testUpdate() {
@@ -130,7 +123,7 @@ class FileStoreTest extends Specification {
         $this->then_ShouldBe('string', 'Some string');
         $this->then_ShouldBe('date', new \DateTime('2001-02-03 +00:00'));
     }
-    
+
     function testArrayValues() {
         $this->class->givenTheClass_WithTheBody('FileStore\ArrayValues', '
             /** @var array|int[] */
@@ -187,7 +180,7 @@ class FileStoreTest extends Specification {
             'Could not infer Serializer of [FileStore\AmbiguousArrayValue::ambiguous]: ' .
             'Ambiguous type.');
     }
-    
+
     function testIdentifierTypes() {
         $this->class->givenTheClass_WithTheBody('FileStore\Identifiers', '
             /** @var string|\DateTime-ID */
@@ -373,6 +366,12 @@ class FileStoreTest extends Specification {
         $that = $this;
         $this->try->tryTo(function () use ($class, $that) {
             $that->givenAStoreFor($class);
+        });
+    }
+
+    private function whenITryToRead($key) {
+        $this->try->tryTo(function () use ($key) {
+            $this->whenIRead($key);
         });
     }
 

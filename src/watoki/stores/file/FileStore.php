@@ -95,7 +95,7 @@ class FileStore extends GeneralStore {
     }
 
     protected function _read($id) {
-        if (!file_exists($this->fileName($id))) {
+        if (!$this->hasKey($id)) {
             throw new NotFoundException("File [$id] does not exist.");
         }
         return $this->inflate(file_get_contents($this->fileName($id)), $id);
@@ -136,7 +136,8 @@ class FileStore extends GeneralStore {
     }
 
     public function hasKey($id) {
-        return file_exists($this->fileName($id));
+        $filename = $this->fileName($id);
+        return file_exists($filename) && is_file($filename);
     }
 
     public function exists($id) {

@@ -24,13 +24,11 @@ class RawFileStore extends FileStore {
     }
 
     protected function _read($id) {
-        $file = $this->fileName($id);
-
-        if (!file_exists($file)) {
+        if (!$this->hasKey($id)) {
             throw new NotFoundException("File [$id] does not exist.");
         }
 
-        return $this->inflate($file);
+        return $this->inflate($this->fileName($id));
     }
 
 } 
