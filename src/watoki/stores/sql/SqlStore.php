@@ -7,11 +7,10 @@ use watoki\reflect\type\ArrayType;
 use watoki\reflect\type\BooleanType;
 use watoki\reflect\type\ClassType;
 use watoki\reflect\type\FloatType;
-use watoki\reflect\type\IdentifierObjectType;
-use watoki\reflect\type\IdentifierType;
 use watoki\reflect\type\IntegerType;
 use watoki\reflect\type\NullableType;
 use watoki\reflect\type\StringType;
+use watoki\reflect\TypeFactory;
 use watoki\stores\common\factories\ClassSerializerFactory;
 use watoki\stores\common\factories\SimpleSerializerFactory;
 use watoki\stores\common\factories\StaticSerializerFactory;
@@ -25,7 +24,6 @@ use watoki\stores\sql\serializers\CompositeSerializer;
 use watoki\stores\sql\serializers\DateTimeImmutableSerializer;
 use watoki\stores\sql\serializers\DateTimeSerializer;
 use watoki\stores\sql\serializers\FloatSerializer;
-use watoki\stores\sql\serializers\IdentifierObjectSerializer;
 use watoki\stores\sql\serializers\IntegerSerializer;
 use watoki\stores\sql\serializers\NullableSerializer;
 use watoki\stores\sql\serializers\StringSerializer;
@@ -64,7 +62,7 @@ class SqlStore extends GeneralStore {
     public static function forClass($class, Database $database, SerializerRegistry $registry = null) {
         $registry = self::registerDefaultSerializers($registry ? : new SerializerRegistry());
 
-        $reflector = new Reflector($class, $registry);
+        $reflector = new Reflector($class, $registry, new TypeFactory());
         $serializer = $reflector->create(CompositeSerializer::$CLASS);
 
         $classParts = explode('\\', $class);
@@ -99,16 +97,8 @@ class SqlStore extends GeneralStore {
         ));
         $registry->add(new SimpleSerializerFactory(ClassType::$CLASS,
             function (ClassType $type) use ($registry) {
-                $reflector = new Reflector($type->getClass(), $registry);
+                $reflector = new Reflector($type->getClass(), $registry, new TypeFactory());
                 return $reflector->create(CompositeSerializer::$CLASS);
-            }));
-        $registry->add(new SimpleSerializerFactory(IdentifierObjectType::$CLASS,
-            function (IdentifierObjectType $type) use ($registry) {
-                return new IdentifierObjectSerializer($type);
-            }));
-        $registry->add(new SimpleSerializerFactory(IdentifierType::$CLASS,
-            function (IdentifierType $type) use ($registry) {
-                return $registry->get($type->getPrimitive());
             }));
 
         return $registry;
@@ -122,7 +112,7 @@ class SqlStore extends GeneralStore {
     }
 
     public function createTable(array $properties) {
-        $definitions = $this->serializer->getDefinition($properties);
+        $definitions = $this->serializer->getDefinition();
 
         if (!is_array($definitions)) {
             throw new \LogicException("Definition of entity serializer must be array");

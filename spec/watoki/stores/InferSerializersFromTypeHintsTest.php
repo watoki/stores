@@ -3,6 +3,7 @@ namespace spec\watoki\stores;
 
 use watoki\reflect\Type;
 use watoki\reflect\type\StringType;
+use watoki\reflect\TypeFactory;
 use watoki\scrut\Specification;
 use watoki\stores\common\CallbackSerializer;
 use watoki\stores\common\factories\ClassSerializerFactory;
@@ -162,7 +163,7 @@ class InferSerializersFromTypeHintsTest extends Specification {
     }
 
     public function whenISerialize_Using($class, $genericSerializer) {
-        $serializer = new Reflector($class, $this->registry);
+        $serializer = new Reflector($class, $this->registry, new TypeFactory());
         $serializer = $serializer->create($genericSerializer);
         $this->serialized = $serializer->serialize(new $class);
     }
@@ -175,7 +176,7 @@ class InferSerializersFromTypeHintsTest extends Specification {
     }
 
     private function whenIInflate_With($class, $array) {
-        $serializer = new Reflector($class, $this->registry);
+        $serializer = new Reflector($class, $this->registry, new TypeFactory());
         $serializer = $serializer->create(GenericSerializer::$CLASS);
         $this->inflated = $serializer->inflate($array);
     }

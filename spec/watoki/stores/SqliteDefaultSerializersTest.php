@@ -130,40 +130,6 @@ class SqliteDefaultSerializersTest extends Specification {
         $this->then_ShouldBe('dictionary', array('one' => 'uno', 'two' => 'dos'));
     }
 
-    function testIdentifierTypes() {
-        $this->class->givenTheClass_WithTheBody('SqliteStore\Identifiers', '
-            /** @var string|\DateTime-ID */
-            public $string;
-
-            /** @var identifier\SomeClassId */
-            public $object;
-
-            /** @var null|identifier\SomeClassId */
-            public $nullable;
-        ');
-        $this->class->givenTheClass('SqliteStore\identifier\SomeClass');
-        $this->class->givenTheClass_WithTheBody('SqliteStore\identifier\SomeClassId',
-            'function __toString() { return "foo"; }');
-        $this->givenTheEntityIsAnInstanceOf('SqliteStore\Identifiers');
-        $this->givenAStoreFor('SqliteStore\Identifiers');
-
-        $this->givenISet_To('string', 'the good old time');
-        $this->givenISet_ToAnInstanceOf('object', 'SqliteStore\identifier\SomeClassId');
-
-        $this->whenICreateTheEntity();
-        $this->thenTable_ShouldContain('Identifiers', '[{
-            "id": 1,
-            "string": "the good old time",
-            "object": "foo",
-            "nullable": null
-        }]');
-
-        $this->givenAStoreFor('SqliteStore\Identifiers');
-        $this->whenIRead(1);
-        $this->then_ShouldBe('string', "the good old time");
-        $this->then_ShouldBeAnInstanceOf('object', 'SqliteStore\identifier\SomeClassId');
-    }
-
     function testEmbeddedObjects() {
         $this->class->givenTheClass_WithTheBody('SqliteStore\Family', '
             /** @var Child */
@@ -257,10 +223,6 @@ class SqliteDefaultSerializersTest extends Specification {
         $this->entity->$property = $value;
     }
 
-    private function givenISet_ToAnInstanceOf($property, $class) {
-        $this->givenISet_To($property, new $class);
-    }
-
     private function givenIRegisteredACountedArraySerializer() {
         $registry = $this->registry;
         $this->registry->add(new SimpleSerializerFactory(ArrayType::$CLASS,
@@ -290,8 +252,4 @@ class SqliteDefaultSerializersTest extends Specification {
         $this->assertEquals($value, $this->entity->$property);
     }
 
-    private function then_ShouldBeAnInstanceOf($property, $class) {
-        $this->assertInstanceOf($class, $this->entity->$property);
-    }
-
-} 
+}

@@ -181,35 +181,6 @@ class FileStoreTest extends Specification {
             'Ambiguous type.');
     }
 
-    function testIdentifierTypes() {
-        $this->class->givenTheClass_WithTheBody('FileStore\Identifiers', '
-            /** @var string|\DateTime-ID */
-            public $string;
-
-            /** @var identifier\SomeClassId */
-            public $object;
-        ');
-        $this->class->givenTheClass('FileStore\identifier\SomeClass');
-        $this->class->givenTheClass_WithTheBody('FileStore\identifier\SomeClassId',
-            'function __toString() { return "foo"; }');
-        $this->givenTheEntityIsAnInstanceOf('FileStore\Identifiers');
-        $this->givenAStoreFor('FileStore\Identifiers');
-
-        $this->givenISet_To('string', 'the good old time');
-        $this->givenISet_ToAnInstanceOf('object', 'FileStore\identifier\SomeClassId');
-
-        $this->whenICreateTheEntityAs('foo');
-        $this->then_ShouldContain('foo', '{
-            "string": "the good old time",
-            "object": "foo"
-        }');
-
-        $this->givenAStoreFor('FileStore\Identifiers');
-        $this->whenIRead('foo');
-        $this->then_ShouldBe('string', "the good old time");
-        $this->then_ShouldBeAnInstanceOf('object', 'FileStore\identifier\SomeClassId');
-    }
-
     function testEmbeddedObjects() {
         $this->class->givenTheClass_WithTheBody('FileStore\Family', '
             /** @var array|Child[] */
@@ -346,10 +317,6 @@ class FileStoreTest extends Specification {
         $this->entity->$property = $value;
     }
 
-    private function givenISet_ToAnInstanceOf($property, $class) {
-        $this->givenISet_To($property, new $class);
-    }
-
     private function givenAStoreFor($class) {
         $this->store = FileStore::forClass($class, $this->tmpDir);
     }
@@ -410,9 +377,5 @@ class FileStoreTest extends Specification {
 
     private function thenTheEntityShouldBeAnInstanceOf($class) {
         $this->assertInstanceOf($class, $this->entity);
-    }
-
-    private function then_ShouldBeAnInstanceOf($property, $class) {
-        $this->assertInstanceOf($class, $this->entity->$property);
     }
 }

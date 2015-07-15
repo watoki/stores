@@ -4,11 +4,9 @@ namespace watoki\stores\file;
 use watoki\reflect\Type;
 use watoki\reflect\type\ArrayType;
 use watoki\reflect\type\ClassType;
-use watoki\reflect\type\IdentifierObjectType;
-use watoki\reflect\type\IdentifierType;
 use watoki\reflect\type\NullableType;
 use watoki\reflect\type\PrimitiveType;
-use watoki\stores\common\CallbackSerializer;
+use watoki\reflect\TypeFactory;
 use watoki\stores\common\factories\ClassSerializerFactory;
 use watoki\stores\common\factories\SimpleSerializerFactory;
 use watoki\stores\common\GenericSerializer;
@@ -46,7 +44,7 @@ class FileStore extends GeneralStore {
     public static function forClass($class, $rootDirectory) {
         $registry = self::registerDefaultSerializers(new SerializerRegistry());
 
-        $reflector = new Reflector($class, $registry);
+        $reflector = new Reflector($class, $registry, new TypeFactory());
         $serializer = $reflector->create(JsonSerializer::$CLASS);
 
         return new FileStore($serializer, $rootDirectory);
@@ -68,27 +66,12 @@ class FileStore extends GeneralStore {
             }));
         $registry->add(new SimpleSerializerFactory(ClassType::$CLASS,
             function (ClassType $type) use ($registry) {
-                $reflector = new Reflector($type->getClass(), $registry);
+                $reflector = new Reflector($type->getClass(), $registry, new TypeFactory());
                 return $reflector->create(GenericSerializer::$CLASS);
             }));
         $registry->add(new SimpleSerializerFactory(PrimitiveType::$CLASS,
             function () {
                 return new NoneSerializer();
-            }));
-        $registry->add(new SimpleSerializerFactory(IdentifierObjectType::$CLASS,
-            function (IdentifierObjectType $type) use ($registry) {
-                return new CallbackSerializer(
-                    function ($object) {
-                        return (string)$object;
-                    },
-                    function ($serialized) use ($type) {
-                        return $type->inflate($serialized);
-                    }
-                );
-            }));
-        $registry->add(new SimpleSerializerFactory(IdentifierType::$CLASS,
-            function (IdentifierType $type) use ($registry) {
-                return $registry->get($type->getPrimitive());
             }));
 
         return $registry;
@@ -98,7 +81,7 @@ class FileStore extends GeneralStore {
         if (!$this->hasKey($id)) {
             throw new NotFoundException("File [$id] does not exist.");
         }
-        return $this->inflate(file_get_contents($this->fileName($id)), $id);
+        return $this->inflate(file_get_contents($this->fileName($id)));
     }
 
     protected function _create($entity, $id) {
@@ -106,7 +89,7 @@ class FileStore extends GeneralStore {
         if (!file_exists(dirname($file))) {
             mkdir(dirname($file), 0777, true);
         }
-        file_put_contents($file, $this->serialize($entity, $id));
+        file_put_contents($file, $this->serialize($entity));
     }
 
     protected function _update($entity) {

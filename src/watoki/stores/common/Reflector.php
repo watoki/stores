@@ -3,6 +3,7 @@ namespace watoki\stores\common;
 
 use watoki\reflect\Property;
 use watoki\reflect\PropertyReader;
+use watoki\reflect\TypeFactory;
 use watoki\stores\SerializerRegistry;
 
 class Reflector {
@@ -13,13 +14,18 @@ class Reflector {
     /** @var \watoki\stores\SerializerRegistry */
     protected $registry;
 
+    /** @var TypeFactory */
+    private $typeFactory;
+
     /**
      * @param string $class
      * @param \watoki\stores\SerializerRegistry $registry
+     * @param TypeFactory $types
      */
-    public function __construct($class, SerializerRegistry $registry) {
+    public function __construct($class, SerializerRegistry $registry, TypeFactory $types) {
         $this->class = $class;
         $this->registry = $registry;
+        $this->typeFactory = $types;
     }
 
     /**
@@ -56,7 +62,7 @@ class Reflector {
      * @throws \Exception
      */
     protected function defineProperties(GenericSerializer $genericSerializer) {
-        $reader = new PropertyReader($this->class);
+        $reader = new PropertyReader($this->typeFactory, $this->class);
         $properties = $reader->readState(~\ReflectionProperty::IS_PRIVATE);
 
         foreach ($properties as $name => $property) {
