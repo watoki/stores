@@ -63,9 +63,12 @@ class Reflector {
      */
     protected function defineProperties(GenericSerializer $genericSerializer) {
         $reader = new PropertyReader($this->typeFactory, $this->class);
-        $properties = $reader->readState(~\ReflectionProperty::IS_PRIVATE);
+        $properties = $reader->readState();
 
         foreach ($properties as $name => $property) {
+            if ($this->isIgnored($property)) {
+                continue;
+            }
             try {
                 $this->defineProperty($name, $property, $genericSerializer);
             } catch (\Exception $e) {
@@ -95,5 +98,9 @@ class Reflector {
     protected function isGenericSerializer($genericSerializerClass) {
         return $genericSerializerClass == GenericSerializer::$CLASS
         || is_subclass_of($genericSerializerClass, GenericSerializer::$CLASS);
+    }
+
+    private function isIgnored(Property $property) {
+        return substr($property->name(), 0, 1) == '_';
     }
 }

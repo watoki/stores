@@ -31,6 +31,15 @@ class InferSerializersFromTypeHintsTest extends Specification {
             'Unknown type [].');
     }
 
+    function testIgnorePropertiesStartingWithUnderscore() {
+        $this->class->givenTheClass_WithTheBody('ReflectingSerializer\IgnoredProperty', '
+            protected $_ignored;
+        ');
+
+        $this->whenITryToSerialize('ReflectingSerializer\IgnoredProperty');
+        $this->try->thenNoExceptionShouldBeThrown();
+    }
+
     function testFailIfTypeHintInvalid() {
         $this->class->givenTheClass_WithTheBody('ReflectingSerializer\InvalidHint', '
             /** @var notAType */
@@ -56,24 +65,24 @@ class InferSerializersFromTypeHintsTest extends Specification {
     }
 
     function testSerializeSingleProperty() {
-        $this->class->givenTheClass_WithTheBody('ReflectingSerializer\OneProperty', '
+        $this->class->givenTheClass_WithTheBody('ReflectingSerializer\SerializeOneProperty', '
             /** @var string */
-            public $property = "foo";
+            private $property = "foo";
         ');
 
-        $this->whenISerialize('ReflectingSerializer\OneProperty');
+        $this->whenISerialize('ReflectingSerializer\SerializeOneProperty');
         $this->thenTheResultShouldBe(array(
             'property' => 'foo'
         ));
     }
 
     function testInflateSingleProperty() {
-        $this->class->givenTheClass_WithTheBody('ReflectingSerializer\OneProperty', '
+        $this->class->givenTheClass_WithTheBody('ReflectingSerializer\InflateOneProperty', '
             /** @var string */
-            public $property = "foo";
+            private $property = "foo";
         ');
 
-        $this->whenIInflate_With('ReflectingSerializer\OneProperty', array(
+        $this->whenIInflate_With('ReflectingSerializer\InflateOneProperty', array(
             'property' => 'bar'
         ));
         $this->thenItsProperty_ShouldBe('property', 'bar');
@@ -186,7 +195,9 @@ class InferSerializersFromTypeHintsTest extends Specification {
     }
 
     private function thenItsProperty_ShouldBe($name, $value) {
-        $this->assertEquals($value, $this->inflated->$name);
+        $property = new \ReflectionProperty($this->inflated, $name);
+        $property->setAccessible(true);
+        $this->assertEquals($value, $property->getValue($this->inflated));
     }
 
 }
