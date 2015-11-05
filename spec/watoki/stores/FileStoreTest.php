@@ -1,11 +1,14 @@
 <?php
 namespace spec\watoki\stores;
 
+use watoki\reflect\type\ClassType;
 use watoki\scrut\Specification;
 use watoki\stores\common\NoneSerializer;
 use watoki\stores\file\FileStore;
+use watoki\stores\file\serializers\DateIntervalSerializer;
 use watoki\stores\file\serializers\DateTimeSerializer;
 use watoki\stores\file\serializers\JsonSerializer;
+use watoki\stores\SerializerRegistry;
 
 /**
  * @property \spec\watoki\reflect\fixtures\ClassFixture class <-
@@ -241,28 +244,24 @@ class FileStoreTest extends Specification {
         }');
     }
 
-    function testSaveDateTimeImmutable() {
-        $this->class->givenTheClass_WithTheBody('FileStore\DateTimeImmutable', '
-            /** @var \DateTimeImmutable */
-            public $foo;
+    function testSerializeDateTimeImmutable() {
+        $registry = new SerializerRegistry();
+        FileStore::registerDefaultSerializers($registry);
 
-            function __construct() {
-                $this->foo = new \DateTimeImmutable("2011-12-13 14:15:16");
-            }
-        ');
-        $this->givenTheEntityIsAnInstanceOf('FileStore\DateTimeImmutable');
-        $this->givenAStoreFor('FileStore\DateTimeImmutable');
+        $serializer = $registry->get(new ClassType('DateTimeImmutable'));
+        $this->assertEquals($serializer, new DateTimeSerializer('DateTimeImmutable'));
+        $this->assertEquals($serializer->serialize(new \DateTimeImmutable('2011-12-13 14:15:16')), '2011-12-13T14:15:16+00:00');
+        $this->assertEquals($serializer->inflate('2011-12-13T14:15:16+00:00'), new \DateTimeImmutable('2011-12-13 14:15:16 +00:00'));
+    }
 
-        $this->whenICreateTheEntityAs('testImmutable');
-        $this->then_ShouldContain('testImmutable', '{
-            "foo": "2011-12-13T14:15:16+00:00"
-        }');
+    function testSerializeDateInterval() {
+        $registry = new SerializerRegistry();
+        FileStore::registerDefaultSerializers($registry);
 
-        $this->givenAFile_Containing('testReadImmutable', '{
-            "foo": "2011-12-13T14:15:16+00:00"
-        }');
-        $this->whenIRead('testReadImmutable');
-        $this->then_ShouldBe('foo', new \DateTimeImmutable("2011-12-13 14:15:16 +00:00"));
+        $serializer = $registry->get(new ClassType('DateInterval'));
+        $this->assertEquals($serializer, new DateIntervalSerializer());
+        $this->assertEquals($serializer->serialize(new \DateInterval('P3DT2H45M')), 'P3DT2H45M');
+        $this->assertEquals($serializer->inflate('P3DT2H45M'), new \DateInterval('P3DT2H45M'));
     }
 
     ############################# SET-UP ##############################

@@ -14,6 +14,7 @@ use watoki\stores\common\NoneSerializer;
 use watoki\stores\common\Reflector;
 use watoki\stores\exception\NotFoundException;
 use watoki\stores\file\serializers\ArraySerializer;
+use watoki\stores\file\serializers\DateIntervalSerializer;
 use watoki\stores\file\serializers\DateTimeSerializer;
 use watoki\stores\file\serializers\JsonSerializer;
 use watoki\stores\file\serializers\NullableSerializer;
@@ -57,6 +58,7 @@ class FileStore extends GeneralStore {
     public static function registerDefaultSerializers(SerializerRegistry $registry) {
         $registry->add(new ClassSerializerFactory('DateTime', new DateTimeSerializer()));
         $registry->add(new ClassSerializerFactory('DateTimeImmutable', new DateTimeSerializer('DateTimeImmutable')));
+        $registry->add(new ClassSerializerFactory('DateInterval', new DateIntervalSerializer()));
         $registry->add(new SimpleSerializerFactory(NullableType::$CLASS,
             function (NullableType $type) use ($registry) {
                 return new NullableSerializer($registry->get($type->getType()));
