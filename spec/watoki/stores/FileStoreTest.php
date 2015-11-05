@@ -245,6 +245,10 @@ class FileStoreTest extends Specification {
     }
 
     function testSerializeDateTimeImmutable() {
+        if (!class_exists('DateTimeImmutable')) {
+            $this->markTestSkipped('Only for >=5.5');
+        }
+
         $registry = new SerializerRegistry();
         FileStore::registerDefaultSerializers($registry);
 
