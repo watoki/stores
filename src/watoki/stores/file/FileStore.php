@@ -56,6 +56,7 @@ class FileStore extends GeneralStore {
      */
     public static function registerDefaultSerializers(SerializerRegistry $registry) {
         $registry->add(new ClassSerializerFactory('DateTime', new DateTimeSerializer()));
+        $registry->add(new ClassSerializerFactory('DateTimeImmutable', new DateTimeSerializer('DateTimeImmutable')));
         $registry->add(new SimpleSerializerFactory(NullableType::$CLASS,
             function (NullableType $type) use ($registry) {
                 return new NullableSerializer($registry->get($type->getType()));

@@ -241,6 +241,30 @@ class FileStoreTest extends Specification {
         }');
     }
 
+    function testSaveDateTimeImmutable() {
+        $this->class->givenTheClass_WithTheBody('FileStore\DateTimeImmutable', '
+            /** @var \DateTimeImmutable */
+            public $foo;
+
+            function __construct() {
+                $this->foo = new \DateTimeImmutable("2011-12-13 14:15:16");
+            }
+        ');
+        $this->givenTheEntityIsAnInstanceOf('FileStore\DateTimeImmutable');
+        $this->givenAStoreFor('FileStore\DateTimeImmutable');
+
+        $this->whenICreateTheEntityAs('testImmutable');
+        $this->then_ShouldContain('testImmutable', '{
+            "foo": "2011-12-13T14:15:16+00:00"
+        }');
+
+        $this->givenAFile_Containing('testReadImmutable', '{
+            "foo": "2011-12-13T14:15:16+00:00"
+        }');
+        $this->whenIRead('testReadImmutable');
+        $this->then_ShouldBe('foo', new \DateTimeImmutable("2011-12-13 14:15:16 +00:00"));
+    }
+
     ############################# SET-UP ##############################
 
     private $tmpDir;

@@ -5,6 +5,16 @@ use watoki\stores\Serializer;
 
 class DateTimeSerializer implements Serializer {
 
+    /** @var string */
+    private $class;
+
+    /**
+     * @param string $class
+     */
+    public function __construct($class = 'DateTime') {
+        $this->class = $class;
+    }
+
     /**
      * @param \DateTime $inflated
      * @return string
@@ -14,6 +24,7 @@ class DateTimeSerializer implements Serializer {
     }
 
     public function inflate($serialized) {
-        return $serialized ? new \DateTime($serialized) : null;
+        $class = $this->class;
+        return $serialized ? new $class($serialized) : null;
     }
 }
