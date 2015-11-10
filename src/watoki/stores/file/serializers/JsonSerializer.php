@@ -8,7 +8,7 @@ class JsonSerializer extends GenericSerializer {
     public static $CLASS = __CLASS__;
 
     public function serialize($inflated) {
-        return json_encode(parent::serialize($inflated));
+        return json_encode(parent::serialize($inflated), JSON_PRETTY_PRINT);
     }
 
     public function inflate($serialized) {

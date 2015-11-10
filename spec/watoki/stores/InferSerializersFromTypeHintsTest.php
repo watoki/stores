@@ -109,7 +109,7 @@ class InferSerializersFromTypeHintsTest extends Specification {
         ');
 
         $this->whenISerialize_Using('GenericSerializer\SomeClass', JsonSerializer::$CLASS);
-        $this->thenTheResultShouldBe('{"property":"foo"}');
+        $this->thenTheResultShouldBe('{' . "\n" . '    "property": "foo"' . "\n" . '}');
     }
 
     function testFailIfNotSubClassOfGenericSerializer() {
