@@ -172,18 +172,6 @@ class FileStoreTest extends Specification {
         $this->then_ShouldBe('dates', array(new \DateTime('2001-01-01 +00'), new \DateTime('2002-02-02 +00')));
     }
 
-    function testAmbiguousArrayValue() {
-        $this->class->givenTheClass_WithTheBody('FileStore\AmbiguousArrayValue', '
-            /** @var array|int[]|string[] */
-            public $ambiguous;
-        ');
-        $this->givenTheEntityIsAnInstanceOf('FileStore\AmbiguousArrayValue');
-        $this->whenITryToCreateAStoreFor('FileStore\AmbiguousArrayValue');
-        $this->try->thenTheException_ShouldBeThrown(
-            'Could not infer Serializer of [FileStore\AmbiguousArrayValue::ambiguous]: ' .
-            'Ambiguous type.');
-    }
-
     function testEmbeddedObjects() {
         $this->class->givenTheClass_WithTheBody('FileStore\Family', '
             /** @var array|Child[] */
@@ -266,6 +254,109 @@ class FileStoreTest extends Specification {
         $this->assertEquals($serializer, new DateIntervalSerializer());
         $this->assertEquals($serializer->serialize(new \DateInterval('P3DT2H45M')), 'P3DT2H45M');
         $this->assertEquals($serializer->inflate('P3DT2H45M'), new \DateInterval('P3DT2H45M'));
+    }
+
+    function testPolymorphicProperty() {
+        $this->class->givenTheClass_WithTheBody('Poly\Family', '
+            /** @var Animal */
+            public $pet;
+
+            /** @var mixed */
+            public $pet2;
+
+            /** @var Dog|Cat */
+            public $pet3;
+
+            /** @var AbstractAnimal */
+            public $pet4;
+
+            /** @var Animal[] */
+            public $pets;
+
+            /** @var AbstractAnimal[] */
+            public $pets2 = [];
+
+            /** @var string|int */
+            public $multi;
+
+            function __construct() {
+                $this->pet = new Dog();
+                $this->pet2 = new Cat();
+                $this->pet3 = new Cat();
+                $this->pet4 = new Cat();
+                $this->pets = [new Cat(), new Dog()];
+                $this->multi = "foo";
+            }
+        ');
+        $this->class->givenTheInterface_WithTheBody('Poly\Animal', '');
+        $this->class->givenTheAbstractClass_WithTheBody('Poly\AbstractAnimal', '');
+        $this->class->givenTheClass_WithTheBody('Poly\Dog implements Animal', '
+            /** @var string */
+            private $name = "Santas little helper";
+        ');
+        $this->class->givenTheClass_WithTheBody('Poly\Cat extends AbstractAnimal implements Animal', '
+            /** @var string */
+            private $name = "Snowball II";
+        ');
+
+        $this->givenTheEntityIsAnInstanceOf('Poly\Family');
+        $this->givenAStoreFor('Poly\Family');
+
+        $this->whenICreateTheEntityAs('simpsons');
+        $this->then_ShouldContain('simpsons', '{
+            "pet": {
+                "class": "Poly\\\\Dog",
+                "data": {
+                    "name": "Santas little helper"
+                }
+            },
+            "pet2": {
+                "class": "Poly\\\\Cat",
+                "data": {
+                    "name": "Snowball II"
+                }
+            },
+            "pet3": {
+                "class": "Poly\\\\Cat",
+                "data": {
+                    "name": "Snowball II"
+                }
+            },
+            "pet4": {
+                "class": "Poly\\\\Cat",
+                "data": {
+                    "name": "Snowball II"
+                }
+            },
+            "pets": [
+                {
+                    "class": "Poly\\\\Cat",
+                    "data": {
+                        "name": "Snowball II"
+                    }
+                },
+                {
+                    "class": "Poly\\\\Dog",
+                    "data": {
+                        "name": "Santas little helper"
+                    }
+                }
+            ],
+            "pets2": [],
+            "multi": "foo"
+        }');
+
+        $this->givenAStoreFor('Poly\Family');
+        $this->whenIRead('simpsons');
+
+        $dogClass = 'Poly\Dog';
+        $catClass = 'Poly\Cat';
+
+        $this->then_ShouldBe('pet', new $dogClass());
+        $this->then_ShouldBe('pet2', new $catClass());
+        $this->then_ShouldBe('pet3', new $catClass());
+        $this->then_ShouldBe('pet4', new $catClass());
+        $this->then_ShouldBe('pets', [new $catClass(), new $dogClass()]);
     }
 
     ############################# SET-UP ##############################
@@ -354,13 +445,6 @@ class FileStoreTest extends Specification {
 
     public function whenICreateTheEntityAs($file) {
         $this->store->create($this->entity, $file);
-    }
-
-    private function whenITryToCreateAStoreFor($class) {
-        $that = $this;
-        $this->try->tryTo(function () use ($class, $that) {
-            $that->givenAStoreFor($class);
-        });
     }
 
     private function whenITryToRead($key) {

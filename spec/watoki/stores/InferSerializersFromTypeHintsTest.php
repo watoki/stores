@@ -28,7 +28,7 @@ class InferSerializersFromTypeHintsTest extends Specification {
         $this->whenITryToSerialize('ReflectingSerializer\NoHint');
         $this->try->thenTheException_ShouldBeThrown(
             'Could not infer Serializer of [ReflectingSerializer\NoHint::noHint]: ' .
-            'Unknown type [].');
+            'No Serializer registered for [mixed]');
     }
 
     function testIgnorePropertiesStartingWithUnderscore() {
@@ -49,7 +49,7 @@ class InferSerializersFromTypeHintsTest extends Specification {
         $this->whenITryToSerialize('ReflectingSerializer\InvalidHint');
         $this->try->thenTheException_ShouldBeThrown(
             'Could not infer Serializer of [ReflectingSerializer\InvalidHint::invalid]: ' .
-            'Unknown type [notAType].');
+            'No Serializer registered for [notAType]');
     }
 
     function testFailIfMultipleTypeHints() {
@@ -61,7 +61,7 @@ class InferSerializersFromTypeHintsTest extends Specification {
         $this->whenITryToSerialize('ReflectingSerializer\TooMany');
         $this->try->thenTheException_ShouldBeThrown(
             'Could not infer Serializer of [ReflectingSerializer\TooMany::tooMany]: ' .
-            'Ambiguous type.');
+            'No Serializer registered for [integer|string]');
     }
 
     function testSerializeSingleProperty() {
@@ -127,7 +127,7 @@ class InferSerializersFromTypeHintsTest extends Specification {
         $this->whenITryToSerialize('TypeNotRegistered\SomeClass');
         $this->try->thenTheException_ShouldBeThrown(
             'Could not infer Serializer of [TypeNotRegistered\SomeClass::property]: ' .
-            'No Serializer registered for [watoki\reflect\type\IntegerType Object()]');
+            'No Serializer registered for [integer]');
     }
 
     ######################################################################################################
