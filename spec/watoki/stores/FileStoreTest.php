@@ -359,6 +359,19 @@ class FileStoreTest extends Specification {
         $this->then_ShouldBe('pets', [new $catClass(), new $dogClass()]);
     }
 
+    function testInflateWithMissingProperty() {
+        $this->class->givenTheClass_WithTheBody('Missing\Foo', '
+            /** @var string */
+            public $one;
+        ');
+
+        $this->givenTheEntityIsAnInstanceOf('Missing\Foo');
+        $this->givenAStoreFor('Missing\Foo');
+
+        $this->givenAFile_Containing('foo', '{}');
+        $this->whenIRead('foo');
+    }
+
     ############################# SET-UP ##############################
 
     private $tmpDir;

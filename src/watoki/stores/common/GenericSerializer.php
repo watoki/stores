@@ -60,7 +60,11 @@ class GenericSerializer implements Serializer {
     public function inflate($serialized) {
         $object = call_user_func($this->creator, $serialized);
         foreach ($this->serializers as $child => $serializer) {
-            $inflatedChild = $serializer->inflate($serialized[$child]);
+            if (array_key_exists($child, $serialized)) {
+                $inflatedChild = $serializer->inflate($serialized[$child]);
+            } else {
+                $inflatedChild = null;
+            }
             call_user_func($this->setters[$child], $object, $inflatedChild);
         }
         return $object;
