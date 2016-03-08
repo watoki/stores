@@ -27,6 +27,20 @@ class FlatFileStoreSpec {
         $this->files->thenThereShouldBeAFile_Containing('foo', 'FOO!');
     }
 
+    function onlyAcceptsStrings() {
+        $this->try->tryTo(function () {
+            $this->store->write(['not' => 'a string']);
+        });
+        $this->try->thenTheException_ShouldBeThrown('Only strings can be stored in flat files.');
+    }
+
+    function onlyAcceptsStringKeys() {
+        $this->try->tryTo(function () {
+            $this->store->write('Foo', 12);
+        });
+        $this->try->thenTheException_ShouldBeThrown('Keys of flat files must be strings.');
+    }
+
     function createsFolders() {
         $this->store->write('FOO', 'foo/bar/baz');
         $this->files->thenThereShouldBeAFolder('foo');

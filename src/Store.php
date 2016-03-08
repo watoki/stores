@@ -8,7 +8,7 @@ interface Store {
     /**
      * @param mixed $data Data to be stored
      * @param null|mixed $key Key under which to store the data, is generated if omitted
-     * @return string The key
+     * @return mixed The key
      */
     public function write($data, $key = null);
 
