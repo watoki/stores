@@ -4,6 +4,7 @@ namespace spec\watoki\stores;
 use rtens\scrut\Assert;
 use rtens\scrut\fixtures\ExceptionFixture;
 use rtens\scrut\fixtures\FilesFixture;
+use watoki\stores\keys\CallbackKeyGenerator;
 use watoki\stores\exceptions\NotFoundException;
 use watoki\stores\file\FlatFileStore;
 
@@ -83,5 +84,15 @@ class FlatFileStoreSpec {
         $this->assert->contains($keys, 'foo/bar');
         $this->assert->contains($keys, 'foo/baz');
         $this->assert->contains($keys, 'foo/foo/bar');
+    }
+
+    function generatesKey() {
+        $store = new FlatFileStore($this->files->fullPath(), new CallbackKeyGenerator(function () {
+            return 'bla';
+        }));
+
+        $store->write('FOO');
+        $this->assert->isTrue($store->has('bla'));
+        $this->assert->equals($store->read('bla'), 'FOO');
     }
 }
