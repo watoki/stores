@@ -13,5 +13,5 @@ interface Serializer {
      * @param string $string
      * @return mixed
      */
-    public function deserialize($string);
+    public function inflate($string);
 }

@@ -25,6 +25,6 @@ class FileStore extends FlatFileStore {
     }
 
     public function read($key) {
-        return $this->serializer->deserialize(parent::read($key));
+        return $this->serializer->inflate(parent::read($key));
     }
 }
