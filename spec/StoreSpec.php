@@ -48,6 +48,10 @@ abstract class StoreSpec extends StaticTestSuite {
         }
     }
 
+    function itReturnsTheKey() {
+        $this->assert->equals($this->store->write($this->data(), 'foo'), 'foo');
+    }
+
     function itWritesAndReadsData() {
         $this->store->write($this->data(1), 'foo');
         $this->store->write($this->data(2), 'bar');

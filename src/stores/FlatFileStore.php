@@ -48,6 +48,8 @@ class FlatFileStore implements Store {
         }
 
         file_put_contents($path, $data);
+
+        return $key;
     }
 
     /**

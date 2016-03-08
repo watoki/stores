@@ -35,6 +35,8 @@ class MemoryStore implements Store {
         }
 
         $this->data[$key] = $data;
+
+        return $key;
     }
 
     /**

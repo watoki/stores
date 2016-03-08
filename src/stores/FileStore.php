@@ -21,7 +21,7 @@ class FileStore extends FlatFileStore {
     }
 
     public function write($data, $key = null) {
-        parent::write($this->serializer->serialize($data), $key);
+        return parent::write($this->serializer->serialize($data), $key);
     }
 
     public function read($key) {
