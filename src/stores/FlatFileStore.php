@@ -98,7 +98,7 @@ class FlatFileStore implements Store {
         $files = [];
         foreach (glob($path . DIRECTORY_SEPARATOR . '*') as $file) {
             if (is_file($file)) {
-                $files[] = substr($file, strlen($this->basePath) + 1);
+                $files[] = str_replace('\\', '/', substr($file, strlen($this->basePath) + 1));
             } else {
                 $files = array_merge($files, $this->filesIn($file));
             }
