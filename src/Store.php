@@ -22,6 +22,7 @@ interface Store {
     /**
      * @param mixed $key The key which to remove from the store
      * @return void
+     * @throws NotFoundException If no data is stored under this key
      */
     public function remove($key);
 
