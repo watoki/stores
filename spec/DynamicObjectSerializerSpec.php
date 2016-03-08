@@ -2,20 +2,19 @@
 namespace spec\watoki\stores;
 
 use rtens\scrut\Assert;
-use watoki\reflect\TypeFactory;
-use watoki\stores\ObjectSerializer;
+use watoki\stores\serializing\DynamicObjectSerializer;
 use watoki\stores\serializing\JsonSerializer;
 
 /**
  * Serializes and inflates any object.
  *
- * @property ObjectSerializer serializer
+ * @property DynamicObjectSerializer serializer
  * @property Assert assert <-
  */
-class ObjectSerializerSpec {
+class DynamicObjectSerializerSpec {
 
     function before() {
-        $this->serializer = new ObjectSerializer(new JsonSerializer(), new TypeFactory());
+        $this->serializer = new DynamicObjectSerializer(new JsonSerializer());
     }
 
     function handlesPrimitives() {

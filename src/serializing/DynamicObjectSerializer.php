@@ -1,11 +1,10 @@
 <?php
-namespace watoki\stores;
+namespace watoki\stores\serializing;
 
 use watoki\reflect\PropertyReader;
 use watoki\reflect\TypeFactory;
-use watoki\stores\serializing\Serializer;
 
-class ObjectSerializer implements Serializer {
+class DynamicObjectSerializer implements Serializer {
 
     const ARRAY_TYPE = 'array';
 
@@ -17,11 +16,10 @@ class ObjectSerializer implements Serializer {
 
     /**
      * @param Serializer $primitive
-     * @param TypeFactory $types
      */
-    public function __construct(Serializer $primitive, TypeFactory $types) {
+    public function __construct(Serializer $primitive) {
         $this->primitive = $primitive;
-        $this->types = $types;
+        $this->types = new TypeFactory();
     }
 
     /**
@@ -78,8 +76,8 @@ class ObjectSerializer implements Serializer {
         return $array;
     }
 
-    private function objectFromPrimitive($type, $data) {
-        $class = new \ReflectionClass($type);
+    private function objectFromPrimitive($className, $data) {
+        $class = new \ReflectionClass($className);
         $instance = $class->newInstanceWithoutConstructor();
 
         $reader = new PropertyReader($this->types, $class->getName());

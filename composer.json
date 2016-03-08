@@ -18,7 +18,7 @@
     "watoki/reflect": "*"
   },
   "require-dev": {
-    "rtens/scrut": "1.*"
+    "rtens/scrut": "dev-master"
   },
   "autoload": {
     "psr-4": {
