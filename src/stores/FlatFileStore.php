@@ -1,5 +1,5 @@
 <?php
-namespace watoki\stores\file;
+namespace watoki\stores\stores;
 
 use watoki\stores\exceptions\NotFoundException;
 use watoki\stores\keys\KeyGenerator;

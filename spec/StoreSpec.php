@@ -104,6 +104,7 @@ abstract class StoreSpec extends StaticTestSuite {
 
         if (!$store) {
             $this->assert->pass();
+            return;
         }
 
         $store->write('foo');

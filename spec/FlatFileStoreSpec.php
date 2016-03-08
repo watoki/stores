@@ -2,7 +2,7 @@
 namespace spec\watoki\stores;
 
 use rtens\scrut\fixtures\FilesFixture;
-use watoki\stores\file\FlatFileStore;
+use watoki\stores\stores\FlatFileStore;
 use watoki\stores\keys\KeyGenerator;
 use watoki\stores\keys\KeyGeneratorFactory;
 use watoki\stores\Store;

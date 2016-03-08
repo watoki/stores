@@ -3,7 +3,7 @@ namespace spec\watoki\stores;
 
 use watoki\stores\keys\KeyGenerator;
 use watoki\stores\keys\KeyGeneratorFactory;
-use watoki\stores\memory\MemoryStore;
+use watoki\stores\stores\MemoryStore;
 use watoki\stores\Store;
 
 /**
