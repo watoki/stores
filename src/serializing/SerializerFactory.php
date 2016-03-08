@@ -17,6 +17,6 @@ class SerializerFactory {
      * @return Serializer
      */
     public static function getDefault() {
-        return self::$default ?: new JsonSerializer();
+        return self::$default ?: new ObjectSerializer();
     }
 }

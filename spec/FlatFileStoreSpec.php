@@ -2,10 +2,9 @@
 namespace spec\watoki\stores;
 
 use rtens\scrut\fixtures\FilesFixture;
-use watoki\stores\stores\FlatFileStore;
 use watoki\stores\keys\KeyGenerator;
-use watoki\stores\keys\KeyGeneratorFactory;
 use watoki\stores\Store;
+use watoki\stores\stores\FlatFileStore;
 
 /**
  * Store strings in a file without any serialization.
@@ -18,7 +17,7 @@ class FlatFileStoreSpec extends StoreSpec {
      * @return Store
      */
     protected function createStore() {
-        return new FlatFileStore($this->files->fullPath(), KeyGeneratorFactory::getDefault());
+        return new FlatFileStore($this->files->fullPath());
     }
 
     protected function createStoreWithKeyGenerator(KeyGenerator $generator) {

@@ -15,7 +15,7 @@ class FileStore extends FlatFileStore {
      * @param null|KeyGenerator $keyGenerator
      * @param null|Serializer $serializer
      */
-    public function __construct($basePath, KeyGenerator $keyGenerator, Serializer $serializer = null) {
+    public function __construct($basePath, KeyGenerator $keyGenerator = null, Serializer $serializer = null) {
         parent::__construct($basePath, $keyGenerator);
         $this->serializer = $serializer ?: SerializerFactory::getDefault();
     }

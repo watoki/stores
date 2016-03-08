@@ -2,8 +2,6 @@
 namespace spec\watoki\stores;
 
 use rtens\scrut\fixtures\FilesFixture;
-use watoki\stores\keys\KeyGeneratorFactory;
-use watoki\stores\serializing\JsonSerializer;
 use watoki\stores\Store;
 use watoki\stores\stores\FileStore;
 
@@ -18,7 +16,7 @@ class FileStoreSpec extends StoreSpec {
      * @return Store
      */
     protected function createStore() {
-        return new FileStore($this->files->fullPath(), KeyGeneratorFactory::getDefault(), new JsonSerializer());
+        return new FileStore($this->files->fullPath());
     }
 
     function itSerializesTheData() {

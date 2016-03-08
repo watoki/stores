@@ -2,9 +2,8 @@
 namespace spec\watoki\stores;
 
 use watoki\stores\keys\KeyGenerator;
-use watoki\stores\keys\KeyGeneratorFactory;
-use watoki\stores\stores\MemoryStore;
 use watoki\stores\Store;
+use watoki\stores\stores\MemoryStore;
 
 /**
  * Store data in memory
@@ -15,7 +14,7 @@ class MemoryStoreSpec extends StoreSpec {
      * @return Store
      */
     protected function createStore() {
-        return new MemoryStore(KeyGeneratorFactory::getDefault());
+        return new MemoryStore();
     }
 
     protected function createStoreWithKeyGenerator(KeyGenerator $generator) {
