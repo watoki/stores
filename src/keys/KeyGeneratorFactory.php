@@ -3,10 +3,20 @@ namespace watoki\stores\keys;
 
 class KeyGeneratorFactory {
 
+    private static $default;
+
+    /**
+     * @param KeyGenerator $generator
+     * @return void
+     */
+    public static function setDefault(KeyGenerator $generator) {
+        self::$default = $generator;
+    }
+
     /**
      * @return KeyGenerator
      */
     public static function getDefault() {
-        return new UniqKeyGenerator();
+        return self::$default ?: new UniqKeyGenerator();
     }
 }

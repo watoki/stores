@@ -1,73 +1,62 @@
 <?php
 namespace spec\watoki\stores;
 
-use rtens\scrut\Assert;
-use rtens\scrut\fixtures\ExceptionFixture;
 use rtens\scrut\fixtures\FilesFixture;
-use watoki\stores\keys\CallbackKeyGenerator;
-use watoki\stores\exceptions\NotFoundException;
 use watoki\stores\file\FlatFileStore;
+use watoki\stores\keys\KeyGenerator;
+use watoki\stores\keys\KeyGeneratorFactory;
+use watoki\stores\Store;
 
 /**
  * Store strings in a file without any serialization.
  *
- * @property FlatFileStore store
- * @property Assert assert <-
  * @property FilesFixture files <-
- * @property ExceptionFixture try <-
  */
-class FlatFileStoreSpec {
+class FlatFileStoreSpec extends StoreSpec {
 
-    function before() {
-        $this->store = new FlatFileStore($this->files->fullPath());
+    /**
+     * @return Store
+     */
+    protected function createStore() {
+        return new FlatFileStore($this->files->fullPath(), KeyGeneratorFactory::getDefault());
     }
 
-    function writes() {
+    protected function createStoreWithKeyGenerator(KeyGenerator $generator) {
+        return new FlatFileStore($this->files->fullPath(), $generator);
+    }
+
+    function itWritesIntoFiles() {
         $this->store->write('FOO!', 'foo');
         $this->files->thenThereShouldBeAFile_Containing('foo', 'FOO!');
     }
 
-    function onlyAcceptsStrings() {
+    function itOnlyAcceptsStrings() {
         $this->try->tryTo(function () {
             $this->store->write(['not' => 'a string']);
         });
         $this->try->thenTheException_ShouldBeThrown('Only strings can be stored in flat files.');
     }
 
-    function onlyAcceptsStringKeys() {
+    function itOnlyAcceptsStringKeys() {
         $this->try->tryTo(function () {
             $this->store->write('Foo', 12);
         });
         $this->try->thenTheException_ShouldBeThrown('Keys of flat files must be strings.');
     }
 
-    function createsFolders() {
+    function itCreatesFolders() {
         $this->store->write('FOO', 'foo/bar/baz');
         $this->files->thenThereShouldBeAFolder('foo');
         $this->files->thenThereShouldBeAFolder('foo/bar');
         $this->files->thenThereShouldBeAFile('foo/bar/baz');
     }
 
-    function reads() {
+    function itReadsFromFiles() {
         $this->files->givenTheFile_Containing('foo/bar', 'FOO');
         $this->assert->equals($this->store->read('foo/bar'), 'FOO');
     }
 
-    function throwsException() {
-        $this->try->tryTo(function () {
-            $this->store->read('foo');
-        });
-        $this->try->thenA_ShouldBeThrown(NotFoundException::class);
-        $this->try->thenTheException_ShouldBeThrown('Could not find [foo]');
-
-        $this->try->tryTo(function () {
-            $this->store->remove('bar');
-        });
-        $this->try->thenA_ShouldBeThrown(NotFoundException::class);
-        $this->try->thenTheException_ShouldBeThrown('Could not find [bar]');
-    }
-
-    function hasKey() {
+    function itUsesFileNamesAsKeys() {
         $this->files->givenTheFile_Containing('foo/bar', 'FOO');
 
         $this->assert->isTrue($this->store->has('foo/bar'));
@@ -75,7 +64,7 @@ class FlatFileStoreSpec {
         $this->assert->not()->isTrue($this->store->has('baz'));
     }
 
-    function removes() {
+    function itDeletesFiles() {
         $this->files->givenTheFile_Containing('foo/bar', 'FOO');
         $this->store->remove('foo/bar');
 
@@ -83,7 +72,7 @@ class FlatFileStoreSpec {
         $this->files->thenThereShouldBeNoFile('foo/bar');
     }
 
-    function listsKeys() {
+    function itListsFiles() {
         $this->files->givenTheFile_Containing('foo/bar', 'BAR');
         $this->files->givenTheFile_Containing('foo/baz', 'BAZ');
         $this->files->givenTheFile_Containing('foo/foo/bar', 'FOO BAR');
@@ -98,15 +87,5 @@ class FlatFileStoreSpec {
         $this->assert->contains($keys, 'foo/bar');
         $this->assert->contains($keys, 'foo/baz');
         $this->assert->contains($keys, 'foo/foo/bar');
-    }
-
-    function generatesKey() {
-        $store = new FlatFileStore($this->files->fullPath(), new CallbackKeyGenerator(function () {
-            return 'bla';
-        }));
-
-        $store->write('FOO');
-        $this->assert->isTrue($store->has('bla'));
-        $this->assert->equals($store->read('bla'), 'FOO');
     }
 }

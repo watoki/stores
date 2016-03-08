@@ -3,7 +3,6 @@ namespace watoki\stores\file;
 
 use watoki\stores\exceptions\NotFoundException;
 use watoki\stores\keys\KeyGenerator;
-use watoki\stores\keys\KeyGeneratorFactory;
 use watoki\stores\Store;
 
 class FlatFileStore implements Store {
@@ -16,11 +15,11 @@ class FlatFileStore implements Store {
 
     /**
      * @param string $basePath
-     * @param null|KeyGenerator $key
+     * @param KeyGenerator $keyGenerator
      */
-    public function __construct($basePath, KeyGenerator $key = null) {
+    public function __construct($basePath, KeyGenerator $keyGenerator) {
         $this->basePath = $basePath;
-        $this->key = $key ?: KeyGeneratorFactory::getDefault();
+        $this->key = $keyGenerator;
     }
 
     /**

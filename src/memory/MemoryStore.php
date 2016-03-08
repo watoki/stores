@@ -3,7 +3,6 @@ namespace watoki\stores\memory;
 
 use watoki\stores\exceptions\NotFoundException;
 use watoki\stores\keys\KeyGenerator;
-use watoki\stores\keys\KeyGeneratorFactory;
 use watoki\stores\Store;
 
 class MemoryStore implements Store {
@@ -14,10 +13,10 @@ class MemoryStore implements Store {
     private $key;
 
     /**
-     * @param null|KeyGenerator $key
+     * @param KeyGenerator $keyGenerator
      */
-    public function __construct(KeyGenerator $key = null) {
-        $this->key = $key ?: KeyGeneratorFactory::getDefault();
+    public function __construct(KeyGenerator $keyGenerator) {
+        $this->key = $keyGenerator;
     }
 
     /**
