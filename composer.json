@@ -1,29 +1,33 @@
 {
-    "name": "watoki/stores",
-    "description": "PHP library for simple PDO based data storage.",
-    "keywords": ["database", "storage", "repository", "PDO", "watoki"],
-    "homepage": "http://github.com/watoki/stores",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Nikolas Martens",
-            "email": "Nikolas.M@rtens.org",
-            "homepage": "http://rtens.org"
-        }
-    ],
-    "require": {
-        "php": ">=5.4",
-        "watoki/collections": "*",
-        "watoki/reflect": "*"
-    },
-    "require-dev": {
-        "watoki/scrut": "*"
-    },
-    "autoload": {
-        "psr-0": {
-            "watoki\\stores": "src/",
-            "spec\\watoki\\stores": ""
-        }
+  "name": "watoki/stores",
+  "description": "PHP library for storing data.",
+  "keywords": ["database", "storage", "repository", "ORM", "watoki"],
+  "homepage": "http://github.com/watoki/stores",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Nikolas Martens",
+      "email": "Nikolas.M@rtens.org",
+      "homepage": "http://rtens.org"
     }
+  ],
+  "require": {
+    "php": ">=5.4",
+    "watoki/collections": "*",
+    "watoki/reflect": "*"
+  },
+  "require-dev": {
+    "rtens/scrut": "1.*"
+  },
+  "autoload": {
+    "psr-4": {
+      "watoki\\stores\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "spec\\watoki\\stores\\": "spec/"
+    }
+  }
 }
