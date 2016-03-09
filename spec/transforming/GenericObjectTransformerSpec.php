@@ -75,6 +75,19 @@ class GenericObjectTransformerSpec {
         ]);
     }
 
+    function doesNotTryToRevertStrings() {
+        $transformed = [
+            ObjectTransformer::TYPE_KEY => __GenericObjectTransformerSpec_Bar::class,
+            ObjectTransformer::DATA_KEY => 'foo'
+        ];
+        $this->assert->isTrue($this->transformer()->hasTransformed($transformed));
+
+        $this->try->tryTo(function () use ($transformed) {
+            $this->transformer()->revert($transformed);
+        });
+        $this->try->thenTheException_ShouldBeThrown("Error while reverting [" . __GenericObjectTransformerSpec_Bar::class . "]. Input is not an array.");
+    }
+
     private function handle($value, $expectedTransformed = null) {
         $transformer = $this->transformer();
 

@@ -60,6 +60,10 @@ class GenericObjectTransformer extends ObjectTransformer {
         $class = new \ReflectionClass($type);
         $instance = $class->newInstanceWithoutConstructor();
 
+        if (!is_array($transformed)) {
+            throw new \Exception("Error while reverting [$type]. Input is not an array.");
+        }
+
         $reader = new PropertyReader($this->types, $class->getName());
 
         $properties = [];
