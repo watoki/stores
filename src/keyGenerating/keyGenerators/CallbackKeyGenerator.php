@@ -1,5 +1,7 @@
 <?php
-namespace watoki\stores\keys;
+namespace watoki\stores\keyGenerating\keyGenerators;
+
+use watoki\stores\keyGenerating\KeyGenerator;
 
 class CallbackKeyGenerator implements KeyGenerator {
 

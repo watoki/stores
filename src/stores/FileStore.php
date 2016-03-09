@@ -1,7 +1,7 @@
 <?php
 namespace watoki\stores\stores;
 
-use watoki\stores\keys\KeyGenerator;
+use watoki\stores\keyGenerating\KeyGenerator;
 use watoki\stores\serializing\Serializer;
 use watoki\stores\serializing\SerializerRepository;
 

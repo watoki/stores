@@ -2,8 +2,8 @@
 namespace watoki\stores\stores;
 
 use watoki\stores\exceptions\NotFoundException;
-use watoki\stores\keys\KeyGenerator;
-use watoki\stores\keys\KeyGeneratorRepository;
+use watoki\stores\keyGenerating\KeyGenerator;
+use watoki\stores\keyGenerating\KeyGeneratorRepository;
 use watoki\stores\Store;
 
 class FlatFileStore implements Store {

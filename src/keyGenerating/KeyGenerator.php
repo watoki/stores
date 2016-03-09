@@ -1,5 +1,5 @@
 <?php
-namespace watoki\stores\keys;
+namespace watoki\stores\keyGenerating;
 
 interface KeyGenerator {
 

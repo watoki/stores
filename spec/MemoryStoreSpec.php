@@ -1,7 +1,7 @@
 <?php
 namespace spec\watoki\stores;
 
-use watoki\stores\keys\KeyGenerator;
+use watoki\stores\keyGenerating\KeyGenerator;
 use watoki\stores\Store;
 use watoki\stores\stores\MemoryStore;
 

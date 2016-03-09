@@ -5,8 +5,8 @@ use rtens\scrut\Assert;
 use rtens\scrut\fixtures\ExceptionFixture;
 use rtens\scrut\tests\statics\StaticTestSuite;
 use watoki\stores\exceptions\NotFoundException;
-use watoki\stores\keys\CallbackKeyGenerator;
-use watoki\stores\keys\KeyGenerator;
+use watoki\stores\keyGenerating\keyGenerators\CallbackKeyGenerator;
+use watoki\stores\keyGenerating\KeyGenerator;
 use watoki\stores\Store;
 
 /**

@@ -1,5 +1,7 @@
 <?php
-namespace watoki\stores\keys;
+namespace watoki\stores\keyGenerating;
+
+use watoki\stores\keyGenerating\keyGenerators\UniqKeyGenerator;
 
 class KeyGeneratorRepository {
 
