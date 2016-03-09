@@ -103,6 +103,19 @@ class TypedObjectTransformerSpec {
         );
     }
 
+    function handlesInterfaceAnnotations() {
+        $this->handle(
+            new ClassType(__TypedObjectTransformerSpec_Nes::class),
+            new __TypedObjectTransformerSpec_Nes(
+                new __TypedObjectTransformerSpec_Foo()
+            ), [
+            'foo' => [
+                ObjectTransformer::TYPE_KEY => __TypedObjectTransformerSpec_Foo::class,
+                ObjectTransformer::DATA_KEY => []
+            ]
+        ]);
+    }
+
     private function handle(ClassType $type, $value, $expectedTransformed = null) {
         $transformer = new TypedObjectTransformer(TransformerRegistryRepository::getDefault(), new TypeFactory());
 
@@ -116,7 +129,7 @@ class TypedObjectTransformerSpec {
     }
 }
 
-class __TypedObjectTransformerSpec_Foo {
+class __TypedObjectTransformerSpec_Foo implements __TypedObjectTransformerSpec_In {
 }
 
 class __TypedObjectTransformerSpec_Bar {
@@ -142,4 +155,18 @@ class __TypedObjectTransformerSpec_Baz {
         $this->foo = $foo;
         $this->bar = $bar;
     }
+}
+
+class __TypedObjectTransformerSpec_Nes {
+
+    /** @var __TypedObjectTransformerSpec_In */
+    private $foo;
+
+    public function __construct($foo) {
+        $this->foo = $foo;
+    }
+}
+
+interface __TypedObjectTransformerSpec_In {
+
 }
