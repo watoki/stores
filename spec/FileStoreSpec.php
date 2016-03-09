@@ -24,7 +24,7 @@ class FileStoreSpec extends StoreSpec {
     }
 
     protected function createStoreWithKeyGenerator(KeyGenerator $generator) {
-        return new FileStore($this->files->fullPath(), $generator);
+        return new FileStore($this->files->fullPath(), null, $generator);
     }
 
     function itSerializesTheData() {
@@ -49,11 +49,11 @@ class FileStoreSpec extends StoreSpec {
     }
 
     function itSerializesWithType() {
-        $type = new ClassType(\DateTime::class);
+        $this->store = new FileStore($this->files->fullPath(), new ClassType(\DateTime::class));
         $data = new \DateTime('2011-12-13 14:15:16 UTC');
 
-        $this->store->writeTyped($type, $data, 'foo');
+        $this->store->write($data, 'foo');
         $this->files->thenThereShouldBeAFile_Containing('foo', json_encode('2011-12-13T14:15:16+00:00'));
-        $this->assert->equals($this->store->readTyped($type, 'foo'), new \DateTime('2011-12-13 14:15:16 UTC'));
+        $this->assert->equals($this->store->read('foo'), $data);
     }
 }

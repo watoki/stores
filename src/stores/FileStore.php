@@ -14,12 +14,13 @@ class FileStore extends SerializedStore {
 
     /**
      * @param string $basePath
+     * @param null|Type $type
      * @param null|KeyGenerator $keyGenerator
      * @param null|TransformerRegistry $transformers
      * @param null|Serializer $serializer
      */
-    public function __construct($basePath, KeyGenerator $keyGenerator = null, TransformerRegistry $transformers = null, Serializer $serializer = null) {
-        parent::__construct($transformers, $serializer);
+    public function __construct($basePath, Type $type = null, KeyGenerator $keyGenerator = null, TransformerRegistry $transformers = null, Serializer $serializer = null) {
+        parent::__construct($type, $transformers, $serializer);
         $this->file = new FlatFileStore($basePath, $keyGenerator);
     }
 
