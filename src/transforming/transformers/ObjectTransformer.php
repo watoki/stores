@@ -6,8 +6,8 @@ use watoki\stores\transforming\TypeMapper;
 
 abstract class ObjectTransformer implements Transformer {
 
-    const TYPE_KEY = 'TYPE';
-    const DATA_KEY = 'DATA';
+    const TYPE_KEY = 'class';
+    const DATA_KEY = 'data';
 
     /** @var TypeMapper */
     protected $mapper;
