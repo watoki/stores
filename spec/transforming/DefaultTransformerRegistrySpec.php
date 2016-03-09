@@ -1,5 +1,5 @@
 <?php
-namespace spec\watoki\stores;
+namespace spec\watoki\stores\transforming;
 
 use rtens\scrut\Assert;
 use watoki\stores\transforming\transformers\ArrayTransformer;

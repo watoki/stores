@@ -1,5 +1,5 @@
 <?php
-namespace spec\watoki\stores;
+namespace spec\watoki\stores\serializing;
 
 use rtens\scrut\Assert;
 use watoki\stores\serializing\serializers\JsonSerializer;
