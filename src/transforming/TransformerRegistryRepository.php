@@ -28,7 +28,7 @@ class TransformerRegistryRepository {
             self::$default = new TransformerRegistry();
             self::$default->add(new DateTimeTransformer());
             self::$default->add(new DateTimeImmutableTransformer());
-            self::$default->add(new TypedObjectTransformer(self::$default, new TypeFactory()));
+            self::$default->add(new TypedObjectTransformer(self::$default));
             self::$default->add(new TypedArrayTransformer(self::$default));
             self::$default->add(new TypedValueTransformer(self::$default));
             self::$default->add(new GenericObjectTransformer(self::$default, new TypeFactory()));

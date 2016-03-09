@@ -54,7 +54,7 @@ class GenericObjectTransformerSpec {
         ));
     }
 
-    function usesTheFactory() {
+    function usesTheRegistry() {
         $this->handle(new GenericObjectTransformerSpec_Bar(
             new \DateTime('2011-12-13 14:15:16 UTC'),
             new \DateTimeImmutable('2011-12-13 14:15:16 UTC')

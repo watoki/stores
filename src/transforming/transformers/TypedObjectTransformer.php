@@ -3,8 +3,20 @@ namespace watoki\stores\transforming\transformers;
 
 use watoki\reflect\Type;
 use watoki\reflect\type\ClassType;
+use watoki\stores\transforming\Transformer;
+use watoki\stores\transforming\TransformerRegistry;
 
-class TypedObjectTransformer extends GenericObjectTransformer {
+class TypedObjectTransformer implements Transformer{
+
+    /** @var TransformerRegistry */
+    private $transformers;
+
+    /**
+     * @param TransformerRegistry $transformers
+     */
+    public function __construct(TransformerRegistry $transformers) {
+        $this->transformers = $transformers;
+    }
 
     /**
      * @param mixed $value
@@ -30,8 +42,9 @@ class TypedObjectTransformer extends GenericObjectTransformer {
     public function hasTransformed($transformed) {
         return
             $transformed instanceof TypedValue
-            && !parent::hasTransformed($transformed->getValue())
-            && is_array($transformed->getValue())
+            && !(
+                is_array($transformed->getValue())
+                && array_key_exists(ObjectTransformer::TYPE_KEY, $transformed->getValue()))
             && $transformed->getType() instanceof ClassType;
     }
 
@@ -40,7 +53,10 @@ class TypedObjectTransformer extends GenericObjectTransformer {
      * @return array
      */
     public function transform($value) {
-        return $this->transformObject($value->getValue());
+        $realValue = $value->getValue();
+        $transformedArray = $this->transformers->toTransform($realValue)->transform($realValue);
+
+        return $transformedArray[ObjectTransformer::DATA_KEY];
     }
 
     /**
@@ -50,6 +66,12 @@ class TypedObjectTransformer extends GenericObjectTransformer {
     public function revert($transformed) {
         /** @var ClassType $type */
         $type = $transformed->getType();
-        return $this->revertObject($transformed->getValue(), $type->getClass());
+
+        $array = [
+            ObjectTransformer::TYPE_KEY => $type->getClass(),
+            ObjectTransformer::DATA_KEY => $transformed->getValue()
+        ];
+
+        return $this->transformers->toRevert($array)->revert($array);
     }
 }

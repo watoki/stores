@@ -87,8 +87,7 @@ class TypedObjectTransformerSpec {
                 new TypedObjectTransformerSpec_Foo(),
                 [
                     new TypedObjectTransformerSpec_Bar('one', 'uno'),
-                    new TypedObjectTransformerSpec_Foo(),
-                    'foo'
+                    new TypedObjectTransformerSpec_Foo()
                 ]
             ),
             [
@@ -98,8 +97,7 @@ class TypedObjectTransformerSpec {
                     [
                         ObjectTransformer::TYPE_KEY => TypedObjectTransformerSpec_Foo::class,
                         ObjectTransformer::DATA_KEY => [],
-                    ],
-                    'foo'
+                    ]
                 ]
             ]
         );
