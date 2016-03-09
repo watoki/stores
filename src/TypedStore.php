@@ -3,7 +3,7 @@ namespace watoki\stores;
 
 use watoki\reflect\Type;
 
-interface TypedStore {
+interface TypedStore extends Store {
 
     /**
      * @param Type $type
