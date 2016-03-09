@@ -28,7 +28,7 @@ class FileStore extends SerializedStore {
      * @param mixed $key
      * @return void
      */
-    protected function writeSerialized($serialized, $key) {
+    protected function writeSerialized($serialized, $key = null) {
         $this->file->write($serialized, $key);
     }
 

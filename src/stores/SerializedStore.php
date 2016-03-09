@@ -29,10 +29,10 @@ abstract class SerializedStore implements TypedStore {
 
     /**
      * @param string $serialized
-     * @param mixed $key
+     * @param null|mixed $key
      * @return void
      */
-    protected abstract function writeSerialized($serialized, $key);
+    protected abstract function writeSerialized($serialized, $key = null);
 
     /**
      * @param mixed $key
