@@ -7,6 +7,9 @@ use watoki\stores\transforming\transformers\DateTimeImmutableTransformer;
 use watoki\stores\transforming\transformers\DateTimeTransformer;
 use watoki\stores\transforming\transformers\GenericObjectTransformer;
 use watoki\stores\transforming\transformers\PrimitiveTransformer;
+use watoki\stores\transforming\transformers\TypedArrayTransformer;
+use watoki\stores\transforming\transformers\TypedObjectTransformer;
+use watoki\stores\transforming\transformers\TypedValueTransformer;
 
 class TransformerRegistryRepository {
 
@@ -25,6 +28,9 @@ class TransformerRegistryRepository {
             self::$default = new TransformerRegistry();
             self::$default->add(new DateTimeTransformer());
             self::$default->add(new DateTimeImmutableTransformer());
+            self::$default->add(new TypedObjectTransformer(self::$default, new TypeFactory()));
+            self::$default->add(new TypedArrayTransformer(self::$default));
+            self::$default->add(new TypedValueTransformer(self::$default));
             self::$default->add(new GenericObjectTransformer(self::$default, new TypeFactory()));
             self::$default->add(new ArrayTransformer(self::$default));
             self::$default->add(new PrimitiveTransformer());

@@ -1,6 +1,7 @@
 <?php
 namespace watoki\stores\transforming\transformers;
 
+use watoki\reflect\Property;
 use watoki\reflect\PropertyReader;
 use watoki\reflect\TypeFactory;
 use watoki\stores\transforming\TransformerRegistry;
@@ -32,12 +33,15 @@ class GenericObjectTransformer extends ObjectTransformer {
 
         $array = [];
         foreach ($reader->readState() as $property) {
-            $value = $property->get($object);
-            $array[$property->name()] = $this->transformers->toTransform($value)->transform($value);
+            $value = new TypedValue($property->get($object), $property->type());
+            $transformer = $this->transformers->toTransform($value);
+            $array[$property->name()] = $transformer->transform($value);
         }
+
         foreach ($object as $propertyName => $propertyValue) {
             if (!array_key_exists($propertyName, $array)) {
-                $array[$propertyName] = $this->transformers->toTransform($propertyValue)->transform($propertyValue);
+                $transformer = $this->transformers->toTransform($propertyValue);
+                $array[$propertyName] = $transformer->transform($propertyValue);
             }
         }
         return $array;
@@ -59,14 +63,16 @@ class GenericObjectTransformer extends ObjectTransformer {
         foreach ($reader->readState() as $property) {
             $properties[] = $property->name();
             if (array_key_exists($property->name(), $transformed)) {
-                $value = $transformed[$property->name()];
-                $property->set($instance, $this->transformers->toRevert($value)->revert($value));
+                $value = new TypedValue($transformed[$property->name()], $property->type());
+                $transformer = $this->transformers->toRevert($value);
+                $property->set($instance, $transformer->revert($value));
             }
         }
 
         foreach ($transformed as $key => $value) {
             if (!in_array($key, $properties)) {
-                $instance->$key = $this->transformers->toRevert($value)->revert($value);
+                $transformer = $this->transformers->toRevert($value);
+                $instance->$key = $transformer->revert($value);
             }
         }
 
