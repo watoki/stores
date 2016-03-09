@@ -9,6 +9,15 @@ class JsonSerializer implements Serializer {
     private $prettyPrint = false;
 
     /**
+     * @param bool $to
+     * @return $this
+     */
+    public function setPrettyPrint($to = true) {
+        $this->prettyPrint = $to;
+        return $this;
+    }
+
+    /**
      * @param mixed $value
      * @return string
      */
@@ -53,9 +62,5 @@ class JsonSerializer implements Serializer {
         } else {
             return $value;
         }
-    }
-
-    public function setPrettyPrint($to = true) {
-        $this->prettyPrint = $to;
     }
 }
