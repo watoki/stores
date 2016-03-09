@@ -19,8 +19,8 @@ class TypedObjectTransformerSpec {
 
     function handlesTypedObject() {
         $this->handle(
-            new ClassType(TypedObjectTransformerSpec_Bar::class),
-            new TypedObjectTransformerSpec_Bar('FOO', 'BAR'),
+            new ClassType(__TypedObjectTransformerSpec_Bar::class),
+            new __TypedObjectTransformerSpec_Bar('FOO', 'BAR'),
             [
                 'foo' => 'FOO',
                 'bar' => 'BAR'
@@ -30,9 +30,9 @@ class TypedObjectTransformerSpec {
 
     function handlesObjectWithAnnotatedProperties() {
         $this->handle(
-            new ClassType(TypedObjectTransformerSpec_Baz::class),
-            new TypedObjectTransformerSpec_Baz(
-                new TypedObjectTransformerSpec_Foo()
+            new ClassType(__TypedObjectTransformerSpec_Baz::class),
+            new __TypedObjectTransformerSpec_Baz(
+                new __TypedObjectTransformerSpec_Foo()
             ),
             [
                 'foo' => [],
@@ -43,13 +43,13 @@ class TypedObjectTransformerSpec {
 
     function handleObjectNotMatchingAnnotation() {
         $this->handle(
-            new ClassType(TypedObjectTransformerSpec_Baz::class),
-            new TypedObjectTransformerSpec_Baz(
-                new TypedObjectTransformerSpec_Bar('one', 'two')
+            new ClassType(__TypedObjectTransformerSpec_Baz::class),
+            new __TypedObjectTransformerSpec_Baz(
+                new __TypedObjectTransformerSpec_Bar('one', 'two')
             ),
             [
                 'foo' => [
-                    ObjectTransformer::TYPE_KEY => TypedObjectTransformerSpec_Bar::class,
+                    ObjectTransformer::TYPE_KEY => __TypedObjectTransformerSpec_Bar::class,
                     ObjectTransformer::DATA_KEY => [
                         'foo' => 'one',
                         'bar' => 'two'
@@ -62,12 +62,12 @@ class TypedObjectTransformerSpec {
 
     function handlesNestedTypedObjects() {
         $this->handle(
-            new ClassType(TypedObjectTransformerSpec_Baz::class),
-            new TypedObjectTransformerSpec_Baz(
-                new TypedObjectTransformerSpec_Foo(),
+            new ClassType(__TypedObjectTransformerSpec_Baz::class),
+            new __TypedObjectTransformerSpec_Baz(
+                new __TypedObjectTransformerSpec_Foo(),
                 [
-                    new TypedObjectTransformerSpec_Bar('one', 'uno'),
-                    new TypedObjectTransformerSpec_Bar('two', 'dos'),
+                    new __TypedObjectTransformerSpec_Bar('one', 'uno'),
+                    new __TypedObjectTransformerSpec_Bar('two', 'dos'),
                 ]
             ),
             [
@@ -82,12 +82,12 @@ class TypedObjectTransformerSpec {
 
     function handlesNestedMixedObjects() {
         $this->handle(
-            new ClassType(TypedObjectTransformerSpec_Baz::class),
-            new TypedObjectTransformerSpec_Baz(
-                new TypedObjectTransformerSpec_Foo(),
+            new ClassType(__TypedObjectTransformerSpec_Baz::class),
+            new __TypedObjectTransformerSpec_Baz(
+                new __TypedObjectTransformerSpec_Foo(),
                 [
-                    new TypedObjectTransformerSpec_Bar('one', 'uno'),
-                    new TypedObjectTransformerSpec_Foo()
+                    new __TypedObjectTransformerSpec_Bar('one', 'uno'),
+                    new __TypedObjectTransformerSpec_Foo()
                 ]
             ),
             [
@@ -95,7 +95,7 @@ class TypedObjectTransformerSpec {
                 'bar' => [
                     ['foo' => 'one', 'bar' => 'uno'],
                     [
-                        ObjectTransformer::TYPE_KEY => TypedObjectTransformerSpec_Foo::class,
+                        ObjectTransformer::TYPE_KEY => __TypedObjectTransformerSpec_Foo::class,
                         ObjectTransformer::DATA_KEY => [],
                     ]
                 ]
@@ -116,10 +116,10 @@ class TypedObjectTransformerSpec {
     }
 }
 
-class TypedObjectTransformerSpec_Foo {
+class __TypedObjectTransformerSpec_Foo {
 }
 
-class TypedObjectTransformerSpec_Bar {
+class __TypedObjectTransformerSpec_Bar {
 
     private $foo;
     private $bar;
@@ -130,12 +130,12 @@ class TypedObjectTransformerSpec_Bar {
     }
 }
 
-class TypedObjectTransformerSpec_Baz {
+class __TypedObjectTransformerSpec_Baz {
 
-    /** @var TypedObjectTransformerSpec_Foo */
+    /** @var __TypedObjectTransformerSpec_Foo */
     private $foo;
 
-    /** @var TypedObjectTransformerSpec_Bar[] */
+    /** @var __TypedObjectTransformerSpec_Bar[] */
     private $bar;
 
     public function __construct($foo = null, $bar = []) {

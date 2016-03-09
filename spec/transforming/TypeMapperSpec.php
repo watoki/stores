@@ -46,14 +46,14 @@ class TypeMapperSpec {
     }
 
     function mapsClassesToAliases() {
-        $this->mapper->addAlias(TypeMapperSpec_Bar::class, 'Bar');
-        $this->mapper->addAlias(TypeMapperSpec_Foo::class, 'Foo');
+        $this->mapper->addAlias(__TypeMapperSpec_Bar::class, 'Bar');
+        $this->mapper->addAlias(__TypeMapperSpec_Foo::class, 'Foo');
         $this->mapper->addAlias(\DateTime::class, 'Date');
         $this->mapper->addAlias(\DateTime::class, 'Time');
         $this->mapper->addAlias(\DateTimeImmutable::class, 'Immutable');
 
-        $data = new TypeMapperSpec_Bar(
-            new TypeMapperSpec_Foo(),
+        $data = new __TypeMapperSpec_Bar(
+            new __TypeMapperSpec_Foo(),
             [
                 new \DateTime('2011-12-13 UTC'),
                 new \DateTimeImmutable('2011-12-14 UTC'),
@@ -110,10 +110,10 @@ class TypeMapperSpec {
     }
 }
 
-class TypeMapperSpec_Foo {
+class __TypeMapperSpec_Foo {
 }
 
-class TypeMapperSpec_Bar {
+class __TypeMapperSpec_Bar {
 
     private $foo;
     private $bar;

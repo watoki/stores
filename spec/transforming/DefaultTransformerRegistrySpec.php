@@ -45,8 +45,8 @@ class DefaultTransformerRegistrySpec {
     }
 
     function handlesStaticObjects() {
-        $this->handle(new DefaultTransformerRegistrySpec_Foo('FOO', 'BAR'), [
-            ObjectTransformer::TYPE_KEY => DefaultTransformerRegistrySpec_Foo::class,
+        $this->handle(new __DefaultTransformerRegistrySpec_Foo('FOO', 'BAR'), [
+            ObjectTransformer::TYPE_KEY => __DefaultTransformerRegistrySpec_Foo::class,
             ObjectTransformer::DATA_KEY => [
                 'foo' => 'FOO',
                 'bar' => 'BAR'
@@ -55,11 +55,11 @@ class DefaultTransformerRegistrySpec {
     }
 
     function handlesMixedObjects() {
-        $object = new DefaultTransformerRegistrySpec_Foo('FOO', 'BAR');
+        $object = new __DefaultTransformerRegistrySpec_Foo('FOO', 'BAR');
         $object->baz = 'BAZ';
 
         $this->handle($object, [
-            ObjectTransformer::TYPE_KEY => DefaultTransformerRegistrySpec_Foo::class,
+            ObjectTransformer::TYPE_KEY => __DefaultTransformerRegistrySpec_Foo::class,
             ObjectTransformer::DATA_KEY => [
                 'foo' => 'FOO',
                 'bar' => 'BAR',
@@ -96,7 +96,7 @@ class DefaultTransformerRegistrySpec {
     }
 }
 
-class DefaultTransformerRegistrySpec_Foo {
+class __DefaultTransformerRegistrySpec_Foo {
     private $foo;
     private $bar;
     public function __construct($foo, $bar) {

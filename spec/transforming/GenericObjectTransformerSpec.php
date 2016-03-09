@@ -20,15 +20,15 @@ use watoki\stores\transforming\TypeMapper;
 class GenericObjectTransformerSpec {
 
     function handlesEmptyObjects() {
-        $this->handle(new GenericObjectTransformerSpec_Foo(), [
-            ObjectTransformer::TYPE_KEY => GenericObjectTransformerSpec_Foo::class,
+        $this->handle(new __GenericObjectTransformerSpec_Foo(), [
+            ObjectTransformer::TYPE_KEY => __GenericObjectTransformerSpec_Foo::class,
             ObjectTransformer::DATA_KEY => []
         ]);
     }
 
     function handlesObjectsWithProperties() {
-        $this->handle(new GenericObjectTransformerSpec_Bar('FOO', 'BAR'), [
-            ObjectTransformer::TYPE_KEY => GenericObjectTransformerSpec_Bar::class,
+        $this->handle(new __GenericObjectTransformerSpec_Bar('FOO', 'BAR'), [
+            ObjectTransformer::TYPE_KEY => __GenericObjectTransformerSpec_Bar::class,
             ObjectTransformer::DATA_KEY => [
                 'foo' => 'FOO',
                 'bar' => 'BAR'
@@ -38,30 +38,30 @@ class GenericObjectTransformerSpec {
 
     function isBackwardsCompatible() {
         $object = $this->transformer()->revert([
-            ObjectTransformer::TYPE_KEY => GenericObjectTransformerSpec_Bar::class,
+            ObjectTransformer::TYPE_KEY => __GenericObjectTransformerSpec_Bar::class,
             ObjectTransformer::DATA_KEY => [
                 'foo' => 'foo'
             ]
         ]);
-        $this->assert->equals($object, new GenericObjectTransformerSpec_Bar('foo', null));
+        $this->assert->equals($object, new __GenericObjectTransformerSpec_Bar('foo', null));
     }
 
     function handlesNestedObjects() {
-        $this->handle(new GenericObjectTransformerSpec_Bar(
-            new GenericObjectTransformerSpec_Foo(),
-            new GenericObjectTransformerSpec_Bar('foo', [
-                'foo' => new GenericObjectTransformerSpec_Foo(),
-                'bar' => new GenericObjectTransformerSpec_Bar('foo', 'bar')
+        $this->handle(new __GenericObjectTransformerSpec_Bar(
+            new __GenericObjectTransformerSpec_Foo(),
+            new __GenericObjectTransformerSpec_Bar('foo', [
+                'foo' => new __GenericObjectTransformerSpec_Foo(),
+                'bar' => new __GenericObjectTransformerSpec_Bar('foo', 'bar')
             ])
         ));
     }
 
     function usesTheRegistry() {
-        $this->handle(new GenericObjectTransformerSpec_Bar(
+        $this->handle(new __GenericObjectTransformerSpec_Bar(
             new \DateTime('2011-12-13 14:15:16 UTC'),
             new \DateTimeImmutable('2011-12-13 14:15:16 UTC')
         ), [
-            ObjectTransformer::TYPE_KEY => GenericObjectTransformerSpec_Bar::class,
+            ObjectTransformer::TYPE_KEY => __GenericObjectTransformerSpec_Bar::class,
             ObjectTransformer::DATA_KEY => [
                 'foo' => [
                     ObjectTransformer::TYPE_KEY => \DateTime::class,
@@ -94,10 +94,10 @@ class GenericObjectTransformerSpec {
     }
 }
 
-class GenericObjectTransformerSpec_Foo {
+class __GenericObjectTransformerSpec_Foo {
 }
 
-class GenericObjectTransformerSpec_Bar {
+class __GenericObjectTransformerSpec_Bar {
 
     private $foo;
     private $bar;
