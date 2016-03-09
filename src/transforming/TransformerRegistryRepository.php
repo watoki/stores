@@ -16,6 +16,12 @@ class TransformerRegistryRepository {
     /** @var null|TransformerRegistry */
     private static $default;
 
+    /** @var null|TypeMapper */
+    private static $mapper;
+
+    /** @var null|TypeFactory */
+    private static $factory;
+
     /**
      * @param TransformerRegistry $default
      */
@@ -23,19 +29,68 @@ class TransformerRegistryRepository {
         self::$default = $default;
     }
 
+    /**
+     * @return TransformerRegistry
+     */
     public static function getDefault() {
         if (!self::$default) {
-            self::$default = new TransformerRegistry();
-            self::$default->add(new DateTimeTransformer());
-            self::$default->add(new DateTimeImmutableTransformer());
-            self::$default->add(new TypedObjectTransformer(self::$default));
-            self::$default->add(new TypedArrayTransformer(self::$default));
-            self::$default->add(new TypedValueTransformer(self::$default));
-            self::$default->add(new GenericObjectTransformer(self::$default, new TypeFactory()));
-            self::$default->add(new ArrayTransformer(self::$default));
-            self::$default->add(new PrimitiveTransformer());
+            self::$default = self::createDefault(self::getTypeMapper(), self::getTypeFactory());
         }
 
         return self::$default;
+    }
+
+    /**
+     * @param TypeMapper $mapper
+     * @param TypeFactory $factory
+     * @return TransformerRegistry With default Transformers registered
+     */
+    public static function createDefault(TypeMapper $mapper, TypeFactory $factory) {
+        $registry = new TransformerRegistry();
+        $registry->add(new DateTimeTransformer($mapper));
+        $registry->add(new DateTimeImmutableTransformer($mapper));
+        $registry->add(new TypedObjectTransformer($registry));
+        $registry->add(new TypedArrayTransformer($registry));
+        $registry->add(new TypedValueTransformer($registry));
+        $registry->add(new GenericObjectTransformer($registry, $mapper, $factory));
+        $registry->add(new ArrayTransformer($registry));
+        $registry->add(new PrimitiveTransformer());
+
+        return $registry;
+    }
+
+    /**
+     * @param TypeMapper $mapper
+     */
+    public static function setMapper(TypeMapper $mapper) {
+        self::$mapper = $mapper;
+    }
+
+    /**
+     * @return TypeMapper
+     */
+    public static function getTypeMapper() {
+        if (!self::$mapper) {
+            self::$mapper = new TypeMapper();
+        }
+
+        return self::$mapper;
+    }
+
+    /**
+     * @param TypeFactory $factory
+     */
+    public static function setFactory(TypeFactory $factory) {
+        self::$factory = $factory;
+    }
+
+    /**
+     * @return TypeFactory
+     */
+    public static function getTypeFactory() {
+        if (!self::$factory) {
+            self::$factory = new TypeFactory();
+        }
+        return self::$factory;
     }
 }

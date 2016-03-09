@@ -2,11 +2,22 @@
 namespace watoki\stores\transforming\transformers;
 
 use watoki\stores\transforming\Transformer;
+use watoki\stores\transforming\TypeMapper;
 
 abstract class ObjectTransformer implements Transformer {
 
     const TYPE_KEY = 'TYPE';
     const DATA_KEY = 'DATA';
+
+    /** @var TypeMapper */
+    protected $mapper;
+
+    /**
+     * @param TypeMapper $mapper
+     */
+    public function __construct(TypeMapper $mapper) {
+        $this->mapper = $mapper;
+    }
 
     /**
      * @param object $object
@@ -43,7 +54,7 @@ abstract class ObjectTransformer implements Transformer {
      */
     public function transform($object) {
         return [
-            self::TYPE_KEY => get_class($object),
+            self::TYPE_KEY => $this->mapper->getAlias(get_class($object)),
             self::DATA_KEY => $this->transformObject($object)
         ];
     }
@@ -55,6 +66,6 @@ abstract class ObjectTransformer implements Transformer {
     public function revert($transformed) {
         return $this->revertObject(
             $transformed[self::DATA_KEY],
-            $transformed[self::TYPE_KEY]);
+            $this->mapper->getClass($transformed[self::TYPE_KEY]));
     }
 }

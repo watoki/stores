@@ -8,10 +8,12 @@ use watoki\reflect\TypeFactory;
 use watoki\stores\transforming\TransformerRegistryRepository;
 use watoki\stores\transforming\transformers\GenericObjectTransformer;
 use watoki\stores\transforming\transformers\ObjectTransformer;
+use watoki\stores\transforming\TypeMapper;
 
 /**
  * Transforms generic objects to primitives and back
  *
+ * @property TypeMapper mapper <-
  * @property Assert assert <-
  * @property ExceptionFixture try <-
  */
@@ -86,7 +88,9 @@ class GenericObjectTransformerSpec {
     }
 
     private function transformer() {
-        return new GenericObjectTransformer(TransformerRegistryRepository::getDefault(), new TypeFactory());
+        $factory = new TypeFactory();
+        $transformers = TransformerRegistryRepository::createDefault($this->mapper, $factory);
+        return new GenericObjectTransformer($transformers, $this->mapper, $factory);
     }
 }
 

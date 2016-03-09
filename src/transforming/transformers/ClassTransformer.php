@@ -13,6 +13,8 @@ abstract class ClassTransformer extends ObjectTransformer {
     }
 
     public function hasTransformed($transformed) {
-        return parent::hasTransformed($transformed) && $transformed[self::TYPE_KEY] == $this->getClass();
+        return
+            parent::hasTransformed($transformed)
+            && in_array($transformed[self::TYPE_KEY], $this->mapper->getAliases($this->getClass()));
     }
 }

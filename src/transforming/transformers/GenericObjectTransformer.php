@@ -5,6 +5,7 @@ use watoki\reflect\Property;
 use watoki\reflect\PropertyReader;
 use watoki\reflect\TypeFactory;
 use watoki\stores\transforming\TransformerRegistry;
+use watoki\stores\transforming\TypeMapper;
 
 class GenericObjectTransformer extends ObjectTransformer {
 
@@ -16,9 +17,11 @@ class GenericObjectTransformer extends ObjectTransformer {
 
     /**
      * @param TransformerRegistry $transformers
+     * @param TypeMapper $mapper
      * @param TypeFactory $types
      */
-    public function __construct(TransformerRegistry $transformers, TypeFactory $types) {
+    public function __construct(TransformerRegistry $transformers, TypeMapper $mapper, TypeFactory $types) {
+        parent::__construct($mapper);
         $this->transformers = $transformers;
         $this->types = $types;
     }
