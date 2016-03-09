@@ -3,6 +3,7 @@ namespace spec\watoki\stores;
 
 use rtens\scrut\fixtures\FilesFixture;
 use watoki\reflect\type\ClassType;
+use watoki\stores\keyGenerating\KeyGenerator;
 use watoki\stores\Store;
 use watoki\stores\stores\FileStore;
 use watoki\stores\transforming\transformers\ObjectTransformer;
@@ -20,6 +21,10 @@ class FileStoreSpec extends StoreSpec {
      */
     protected function createStore() {
         return new FileStore($this->files->fullPath());
+    }
+
+    protected function createStoreWithKeyGenerator(KeyGenerator $generator) {
+        return new FileStore($this->files->fullPath(), $generator);
     }
 
     function itSerializesTheData() {

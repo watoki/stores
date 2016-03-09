@@ -56,6 +56,9 @@ abstract class StoreSpec extends StaticTestSuite {
         $this->store->write($this->data(1), 'foo');
         $this->store->write($this->data(2), 'bar');
 
+        $this->assert->isTrue($this->store->has('foo'));
+        $this->assert->isTrue($this->store->has('bar'));
+
         $this->assert->equals($this->store->read('foo'), $this->data(1));
         $this->assert->equals($this->store->read('bar'), $this->data(2));
     }
