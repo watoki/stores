@@ -3,7 +3,7 @@ namespace watoki\stores\stores;
 
 use watoki\stores\keys\KeyGenerator;
 use watoki\stores\serializing\Serializer;
-use watoki\stores\serializing\SerializerFactory;
+use watoki\stores\serializing\SerializerRepository;
 
 class FileStore extends FlatFileStore {
 
@@ -17,7 +17,7 @@ class FileStore extends FlatFileStore {
      */
     public function __construct($basePath, KeyGenerator $keyGenerator = null, Serializer $serializer = null) {
         parent::__construct($basePath, $keyGenerator);
-        $this->serializer = $serializer ?: SerializerFactory::getDefault();
+        $this->serializer = $serializer ?: SerializerRepository::getDefault();
     }
 
     public function write($data, $key = null) {

@@ -1,7 +1,7 @@
 <?php
 namespace watoki\stores\keys;
 
-class KeyGeneratorFactory {
+class KeyGeneratorRepository {
 
     private static $default;
 

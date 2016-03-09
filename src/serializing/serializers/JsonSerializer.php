@@ -1,5 +1,7 @@
 <?php
-namespace watoki\stores\serializing;
+namespace watoki\stores\serializing\serializers;
+
+use watoki\stores\serializing\Serializer;
 
 class JsonSerializer implements Serializer {
 
@@ -20,7 +22,7 @@ class JsonSerializer implements Serializer {
      * @return mixed
      */
     public function inflate($string) {
-        return $this->decode(json_decode($string, true));
+        return $this->decode(json_decode($string, true)) ?: $string;
     }
 
     private function encode($value) {

@@ -1,7 +1,9 @@
 <?php
 namespace watoki\stores\serializing;
 
-class SerializerFactory {
+use watoki\stores\serializing\serializers\JsonSerializer;
+
+class SerializerRepository {
 
     /** @var Serializer */
     private static $default;
@@ -17,6 +19,6 @@ class SerializerFactory {
      * @return Serializer
      */
     public static function getDefault() {
-        return self::$default ?: new ObjectSerializer();
+        return self::$default ?: new JsonSerializer();
     }
 }

@@ -2,7 +2,7 @@
 namespace spec\watoki\stores;
 
 use rtens\scrut\Assert;
-use watoki\stores\serializing\JsonSerializer;
+use watoki\stores\serializing\serializers\JsonSerializer;
 
 /**
  * Serializes a value to a JSON string
@@ -24,6 +24,11 @@ class JsonSerializerSpec {
     function inflatesPrimitives() {
         $inflated = $this->serializer->inflate('{"foo":[1,"bar"],"0":null}');
         $this->assert->equals($inflated, ['foo' => [1, 'bar'], null]);
+    }
+
+    function fallsBackToString() {
+        $string = $this->serializer->inflate('not valid json');
+        $this->assert->equals($string, 'not valid json');
     }
 
     function handlesBinaryValues() {

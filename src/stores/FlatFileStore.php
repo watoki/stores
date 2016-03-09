@@ -3,7 +3,7 @@ namespace watoki\stores\stores;
 
 use watoki\stores\exceptions\NotFoundException;
 use watoki\stores\keys\KeyGenerator;
-use watoki\stores\keys\KeyGeneratorFactory;
+use watoki\stores\keys\KeyGeneratorRepository;
 use watoki\stores\Store;
 
 class FlatFileStore implements Store {
@@ -20,7 +20,7 @@ class FlatFileStore implements Store {
      */
     public function __construct($basePath, KeyGenerator $keyGenerator = null) {
         $this->basePath = $basePath;
-        $this->key = $keyGenerator ?: KeyGeneratorFactory::getDefault();
+        $this->key = $keyGenerator ?: KeyGeneratorRepository::getDefault();
     }
 
     /**
