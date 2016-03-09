@@ -83,7 +83,7 @@ class DefaultTransformerRegistrySpec {
     }
 
     private function handle($value, $expectedTransformed = null) {
-        $registry = TransformerRegistryRepository::getDefault();
+        $registry = TransformerRegistryRepository::getDefaultTransformerRegistry();
 
         $transformed = $registry->toTransform($value)->transform($value);
 

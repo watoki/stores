@@ -20,7 +20,7 @@ use watoki\stores\transforming\TypeMapper;
 class TypeMapperSpec {
 
     function before() {
-        $this->transformers = TransformerRegistryRepository::createDefault($this->mapper, new TypeFactory());
+        $this->transformers = TransformerRegistryRepository::createDefaultTransformerRegistry($this->mapper, new TypeFactory());
     }
 
     function cannotAddClassNameAsAlias() {

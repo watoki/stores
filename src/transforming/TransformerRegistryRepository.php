@@ -25,27 +25,30 @@ class TransformerRegistryRepository {
     /**
      * @param TransformerRegistry $default
      */
-    public static function setDefault(TransformerRegistry $default) {
+    public static function setDefaultTransformerRegistry(TransformerRegistry $default) {
         self::$default = $default;
     }
 
     /**
      * @return TransformerRegistry
      */
-    public static function getDefault() {
+    public static function getDefaultTransformerRegistry() {
         if (!self::$default) {
-            self::$default = self::createDefault(self::getTypeMapper(), self::getTypeFactory());
+            self::$default = self::createDefaultTransformerRegistry();
         }
 
         return self::$default;
     }
 
     /**
-     * @param TypeMapper $mapper
-     * @param TypeFactory $factory
+     * @param null|TypeMapper $mapper
+     * @param null|TypeFactory $factory
      * @return TransformerRegistry With default Transformers registered
      */
-    public static function createDefault(TypeMapper $mapper, TypeFactory $factory) {
+    public static function createDefaultTransformerRegistry(TypeMapper $mapper = null, TypeFactory $factory = null) {
+        $mapper = $mapper ?: self::getDefaultTypeMapper();
+        $factory = $factory ?: self::getDefaultTypeFactory();
+
         $registry = new TransformerRegistry();
         $registry->add(new DateTimeTransformer($mapper));
         $registry->add(new DateTimeImmutableTransformer($mapper));
@@ -62,14 +65,14 @@ class TransformerRegistryRepository {
     /**
      * @param TypeMapper $mapper
      */
-    public static function setMapper(TypeMapper $mapper) {
+    public static function setDefaultMapper(TypeMapper $mapper) {
         self::$mapper = $mapper;
     }
 
     /**
      * @return TypeMapper
      */
-    public static function getTypeMapper() {
+    public static function getDefaultTypeMapper() {
         if (!self::$mapper) {
             self::$mapper = new TypeMapper();
         }
@@ -80,14 +83,14 @@ class TransformerRegistryRepository {
     /**
      * @param TypeFactory $factory
      */
-    public static function setFactory(TypeFactory $factory) {
+    public static function setDefaultTypeFactory(TypeFactory $factory) {
         self::$factory = $factory;
     }
 
     /**
      * @return TypeFactory
      */
-    public static function getTypeFactory() {
+    public static function getDefaultTypeFactory() {
         if (!self::$factory) {
             self::$factory = new TypeFactory();
         }

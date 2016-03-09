@@ -27,7 +27,7 @@ class FileStore extends FlatFileStore implements TypedStore {
      */
     public function __construct($basePath, KeyGenerator $keyGenerator = null, TransformerRegistry $transformers = null, Serializer $serializer = null) {
         parent::__construct($basePath, $keyGenerator);
-        $this->transformers = $transformers ?: TransformerRegistryRepository::getDefault();
+        $this->transformers = $transformers ?: TransformerRegistryRepository::getDefaultTransformerRegistry();
         $this->serializer = $serializer ?: SerializerRepository::getDefault();
     }
 

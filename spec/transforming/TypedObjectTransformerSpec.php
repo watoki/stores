@@ -117,7 +117,7 @@ class TypedObjectTransformerSpec {
     }
 
     private function handle(ClassType $type, $value, $expectedTransformed = null) {
-        $transformer = new TypedObjectTransformer(TransformerRegistryRepository::getDefault(), new TypeFactory());
+        $transformer = new TypedObjectTransformer(TransformerRegistryRepository::getDefaultTransformerRegistry(), new TypeFactory());
 
         $transformed = $transformer->transform(new TypedValue($value, $type));
 

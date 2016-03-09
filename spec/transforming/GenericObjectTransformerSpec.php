@@ -101,9 +101,8 @@ class GenericObjectTransformerSpec {
     }
 
     private function transformer() {
-        $factory = new TypeFactory();
-        $transformers = TransformerRegistryRepository::createDefault($this->mapper, $factory);
-        return new GenericObjectTransformer($transformers, $this->mapper, $factory);
+        $transformers = TransformerRegistryRepository::createDefaultTransformerRegistry($this->mapper);
+        return new GenericObjectTransformer($transformers, $this->mapper, new TypeFactory());
     }
 }
 
