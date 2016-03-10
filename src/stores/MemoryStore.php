@@ -30,9 +30,10 @@ class MemoryStore implements Store {
         if (!$key) {
             $key = $this->key->generate();
         }
-        if (!is_string($key)) {
+        if (!$this->isStringy($key)) {
             throw new \Exception('Memory keys must be strings.');
         }
+        $key = (string)$key;
 
         $this->data[$key] = $data;
 
@@ -70,7 +71,7 @@ class MemoryStore implements Store {
      * @return boolean True if the key exists, false otherwise
      */
     public function has($key) {
-        return array_key_exists($key, $this->data);
+        return array_key_exists((string)$key, $this->data);
     }
 
     /**
@@ -78,5 +79,9 @@ class MemoryStore implements Store {
      */
     public function keys() {
         return array_keys($this->data);
+    }
+
+    private function isStringy($var) {
+        return is_string($var) || is_int($var) || is_float($var) || is_double($var) || is_object($var) && method_exists($var, '__toString');
     }
 }
