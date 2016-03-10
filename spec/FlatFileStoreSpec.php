@@ -50,31 +50,6 @@ class FlatFileStoreSpec extends StoreSpec {
         $this->try->thenTheException_ShouldBeThrown('Only strings can be stored in flat files.');
     }
 
-    function itConvertsKeysToString() {
-        $this->store->write('foo', 42);
-        $this->assert->isTrue($this->store->has(42));
-        $this->files->thenThereShouldBeAFile_Containing('42', 'foo');
-
-        $this->store->write('foo', 4.2);
-        $this->assert->isTrue($this->store->has(4.2));
-        $this->files->thenThereShouldBeAFile_Containing('4.2', 'foo');
-
-        $this->store->write('foo', (double)4.2);
-        $this->assert->isTrue($this->store->has((double)4.2));
-        $this->files->thenThereShouldBeAFile_Containing('4.2', 'foo');
-
-        $this->store->write('foo', new __FlatFileStoreSpec_Foo('bar'));
-        $this->assert->isTrue($this->store->has(new __FlatFileStoreSpec_Foo('bar')));
-        $this->files->thenThereShouldBeAFile_Containing('bar', 'foo');
-    }
-
-    function itOnlyAcceptsStringKeys() {
-        $this->try->tryTo(function () {
-            $this->store->write('Foo', ['not' => 'a string']);
-        });
-        $this->try->thenTheException_ShouldBeThrown('Keys of flat files must be strings.');
-    }
-
     function itCreatesFolders() {
         $this->store->write('FOO', 'foo/bar/baz');
         $this->files->thenThereShouldBeAFolder('foo');

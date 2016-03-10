@@ -1,6 +1,7 @@
 <?php
 namespace watoki\stores\stores;
 
+use watoki\stores\exceptions\InvalidKeyException;
 use watoki\stores\exceptions\NotFoundException;
 use watoki\stores\keyGenerating\KeyGenerator;
 use watoki\stores\keyGenerating\KeyGeneratorRepository;
@@ -30,16 +31,12 @@ class FlatFileStore implements Store {
      * @throws \Exception If data or key are not strings
      */
     public function write($data, $key = null) {
-        if (!$this->isStringy($data)) {
-            throw new \Exception('Only strings can be stored in flat files.');
-        }
+        $this->guardStringiness($data, 'Only strings can be stored in flat files.');
 
         if (!$key) {
             $key = $this->key->generate();
         }
-        if (!$this->isStringy($key)) {
-            throw new \Exception('Keys of flat files must be strings.');
-        }
+        $this->guardStringiness($key);
 
         $path = $this->path($key);
         $dir = dirname($path);
@@ -58,6 +55,7 @@ class FlatFileStore implements Store {
      * @throws NotFoundException If no data is stored under this key
      */
     public function read($key) {
+        $this->guardStringiness($key);
         if (!$this->has($key)) {
             throw new NotFoundException($key);
         }
@@ -70,6 +68,7 @@ class FlatFileStore implements Store {
      * @throws NotFoundException If no data is stored under this key
      */
     public function remove($key) {
+        $this->guardStringiness($key);
         if (!$this->has($key)) {
             throw new NotFoundException($key);
         }
@@ -82,6 +81,7 @@ class FlatFileStore implements Store {
      * @return boolean True if the key exists, false otherwise
      */
     public function has($key) {
+        $this->guardStringiness($key);
         $path = $this->path($key);
         return file_exists($path) && is_file($path);
     }
@@ -109,7 +109,18 @@ class FlatFileStore implements Store {
         return $files;
     }
 
-    private function isStringy($var) {
-        return is_string($var) || is_int($var) || is_float($var) || is_double($var) || is_object($var) && method_exists($var, '__toString');
+    private function guardStringiness($var, $error = 'Keys of flat files must be strings.') {
+        $isStringy =
+            is_string($var)
+            || is_int($var)
+            || is_float($var)
+            || is_double($var)
+            || (
+                is_object($var)
+                && method_exists($var, '__toString'));
+
+        if (!$isStringy) {
+            throw new InvalidKeyException($error);
+        }
     }
 }

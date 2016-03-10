@@ -4,6 +4,7 @@ namespace spec\watoki\stores;
 use rtens\scrut\Assert;
 use rtens\scrut\fixtures\ExceptionFixture;
 use rtens\scrut\tests\statics\StaticTestSuite;
+use watoki\stores\exceptions\InvalidKeyException;
 use watoki\stores\exceptions\NotFoundException;
 use watoki\stores\keyGenerating\keyGenerators\CallbackKeyGenerator;
 use watoki\stores\keyGenerating\KeyGenerator;
@@ -32,6 +33,14 @@ abstract class StoreSpec extends StaticTestSuite {
 
     protected function data($suffix = '') {
         return 'bla bla bla' . $suffix;
+    }
+
+    private function acceptedKeys() {
+        return ['foo', 42, 4.2, (double)4.2, new __StoreSpec_Foo('foo')];
+    }
+
+    private function notAcceptedKeys() {
+        return [['array'], new \StdClass()];
     }
 
     protected function before() {
@@ -103,6 +112,32 @@ abstract class StoreSpec extends StaticTestSuite {
         $this->try->thenTheException_ShouldBeThrown('Could not find [foo]');
     }
 
+    function itAcceptsDifferentKeys() {
+        foreach ($this->acceptedKeys() as $key) {
+            $this->assert->equals($this->store->write($this->data(), $key), $key);
+            $this->assert->isTrue($this->store->has($key));
+            $this->assert->equals($this->store->read($key), $this->data());
+            $this->store->remove($key);
+            $this->assert->not($this->store->has($key));
+        }
+    }
+
+    function itFailsIfAKeyIsNotAccepted() {
+        $try = function ($method, $args) {
+            $this->try->tryTo(function () use ($method, $args) {
+                call_user_func_array([$this->store, $method], $args);
+            });
+            $this->try->thenA_ShouldBeThrown(InvalidKeyException::class);
+        };
+
+        foreach ($this->notAcceptedKeys() as $key) {
+            $try('write', [$this->data(), $key]);
+            $try('has', [$key]);
+            $try('read', [$key]);
+            $try('remove', [$key]);
+        }
+    }
+
     function itGeneratesKeys() {
         $i = 1;
         $store = $this->createStoreWithKeyGenerator(new CallbackKeyGenerator(function () use (&$i) {
@@ -126,5 +161,15 @@ abstract class StoreSpec extends StaticTestSuite {
 
         $this->assert->isTrue($store->has('key2'));
         $this->assert->equals($store->read('key2'), 'bar');
+    }
+}
+
+class __StoreSpec_Foo {
+    private $value;
+    public function __construct($value) {
+        $this->value = $value;
+    }
+    function __toString() {
+        return $this->value;
     }
 }

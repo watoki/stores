@@ -1,6 +1,7 @@
 <?php
 namespace watoki\stores\stores;
 
+use watoki\stores\exceptions\InvalidKeyException;
 use watoki\stores\exceptions\NotFoundException;
 use watoki\stores\keyGenerating\KeyGenerator;
 use watoki\stores\keyGenerating\KeyGeneratorRepository;
@@ -30,12 +31,9 @@ class MemoryStore implements Store {
         if (!$key) {
             $key = $this->key->generate();
         }
-        if (!$this->isStringy($key)) {
-            throw new \Exception('Memory keys must be strings.');
-        }
-        $key = (string)$key;
+        $this->guardStringiness($key);
 
-        $this->data[$key] = $data;
+        $this->data[(string)$key] = $data;
 
         return $key;
     }
@@ -46,6 +44,7 @@ class MemoryStore implements Store {
      * @throws NotFoundException If no data is stored under this key
      */
     public function read($key) {
+        $key = $this->guardStringiness($key);
         if (!$this->has($key)) {
             throw new NotFoundException($key);
         }
@@ -59,6 +58,7 @@ class MemoryStore implements Store {
      * @throws NotFoundException If no data is stored under this key
      */
     public function remove($key) {
+        $key = $this->guardStringiness($key);
         if (!$this->has($key)) {
             throw new NotFoundException($key);
         }
@@ -71,7 +71,8 @@ class MemoryStore implements Store {
      * @return boolean True if the key exists, false otherwise
      */
     public function has($key) {
-        return array_key_exists((string)$key, $this->data);
+        $key = $this->guardStringiness($key);
+        return array_key_exists($key, $this->data);
     }
 
     /**
@@ -81,7 +82,20 @@ class MemoryStore implements Store {
         return array_keys($this->data);
     }
 
-    private function isStringy($var) {
-        return is_string($var) || is_int($var) || is_float($var) || is_double($var) || is_object($var) && method_exists($var, '__toString');
+    private function guardStringiness($var, $error = 'Memory keys must be strings.') {
+        $isStringy =
+            is_string($var)
+            || is_int($var)
+            || is_float($var)
+            || is_double($var)
+            || (
+                is_object($var)
+                && method_exists($var, '__toString'));
+
+        if (!$isStringy) {
+            throw new InvalidKeyException($error);
+        }
+
+        return (string)$var;
     }
 }
