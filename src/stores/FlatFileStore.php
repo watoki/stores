@@ -30,14 +30,14 @@ class FlatFileStore implements Store {
      * @throws \Exception If data or key are not strings
      */
     public function write($data, $key = null) {
-        if (!is_string($data)) {
+        if (!$this->isStringy($data)) {
             throw new \Exception('Only strings can be stored in flat files.');
         }
 
         if (!$key) {
             $key = $this->key->generate();
         }
-        if (!is_string($key)) {
+        if (!$this->isStringy($key)) {
             throw new \Exception('Keys of flat files must be strings.');
         }
 
@@ -47,7 +47,7 @@ class FlatFileStore implements Store {
             mkdir($dir, 0777, true);
         }
 
-        file_put_contents($path, $data);
+        file_put_contents($path, (string)$data);
 
         return $key;
     }
@@ -107,5 +107,9 @@ class FlatFileStore implements Store {
             }
         }
         return $files;
+    }
+
+    private function isStringy($var) {
+        return is_string($var) || is_int($var) || is_float($var) || is_double($var) || is_object($var) && method_exists($var, '__toString');
     }
 }
