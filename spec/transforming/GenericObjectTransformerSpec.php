@@ -85,7 +85,7 @@ class GenericObjectTransformerSpec {
         $this->try->tryTo(function () use ($transformed) {
             $this->transformer()->revert($transformed);
         });
-        $this->try->thenTheException_ShouldBeThrown("Error while reverting [" . __GenericObjectTransformerSpec_Bar::class . "]. Input is not an array.");
+        $this->try->thenTheException_ShouldBeThrown("Error while reverting [" . __GenericObjectTransformerSpec_Bar::class . "]. Input is not an array: 'foo'");
     }
 
     private function handle($value, $expectedTransformed = null) {

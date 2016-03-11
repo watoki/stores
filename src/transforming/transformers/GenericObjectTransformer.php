@@ -4,6 +4,7 @@ namespace watoki\stores\transforming\transformers;
 use watoki\reflect\Property;
 use watoki\reflect\PropertyReader;
 use watoki\reflect\TypeFactory;
+use watoki\reflect\ValuePrinter;
 use watoki\stores\transforming\TransformerRegistry;
 use watoki\stores\transforming\TypeMapper;
 
@@ -61,7 +62,7 @@ class GenericObjectTransformer extends ObjectTransformer {
         $instance = $class->newInstanceWithoutConstructor();
 
         if (!is_array($transformed)) {
-            throw new \Exception("Error while reverting [$type]. Input is not an array.");
+            throw new \Exception("Error while reverting [$type]. Input is not an array: " . ValuePrinter::serialize($transformed));
         }
 
         $reader = new PropertyReader($this->types, $class->getName());
