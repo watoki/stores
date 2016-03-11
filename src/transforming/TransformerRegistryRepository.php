@@ -8,6 +8,7 @@ use watoki\stores\transforming\transformers\DateTimeTransformer;
 use watoki\stores\transforming\transformers\GenericObjectTransformer;
 use watoki\stores\transforming\transformers\PrimitiveTransformer;
 use watoki\stores\transforming\transformers\TypedArrayTransformer;
+use watoki\stores\transforming\transformers\TypedNullableObjectTransformer;
 use watoki\stores\transforming\transformers\TypedObjectTransformer;
 use watoki\stores\transforming\transformers\TypedValueTransformer;
 
@@ -52,6 +53,7 @@ class TransformerRegistryRepository {
         $registry = new TransformerRegistry();
         $registry->add(new DateTimeTransformer($mapper));
         $registry->add(new DateTimeImmutableTransformer($mapper));
+        $registry->add(new TypedNullableObjectTransformer($registry));
         $registry->add(new TypedObjectTransformer($registry));
         $registry->add(new TypedArrayTransformer($registry));
         $registry->add(new TypedValueTransformer($registry));

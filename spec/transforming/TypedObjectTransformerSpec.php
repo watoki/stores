@@ -117,6 +117,19 @@ class TypedObjectTransformerSpec {
             ]);
     }
 
+    function handlesNullableTypes() {
+        $this->handle(
+            new ClassType(__TypedObjectTransformerSpec_Nullable::class),
+            new __TypedObjectTransformerSpec_Nullable(
+                new __TypedObjectTransformerSpec_Foo(),
+                null
+            ),
+            [
+                'foo' => [],
+                'bar' => null
+            ]);
+    }
+
     function handlesNull() {
         $this->handle(
             new ClassType(__TypedObjectTransformerSpec_Baz::class),
@@ -198,9 +211,12 @@ class __TypedObjectTransformerSpec_Nullable {
 
     /** @var null|__TypedObjectTransformerSpec_Foo */
     private $foo;
+    /** @var null|__TypedObjectTransformerSpec_Foo */
+    private $bar;
 
-    public function __construct($foo) {
+    public function __construct($foo, $bar) {
         $this->foo = $foo;
+        $this->bar = $bar;
     }
 }
 
