@@ -56,6 +56,18 @@ class GenericObjectTransformerSpec {
         ));
     }
 
+    function handlesNull() {
+        $this->handle(new __GenericObjectTransformerSpec_Bar(
+            null,
+            null
+        ), [
+            ObjectTransformer::TYPE_KEY => __GenericObjectTransformerSpec_Bar::class,
+            ObjectTransformer::DATA_KEY => [
+                'foo' => null,
+                'bar' => null]
+        ]);
+    }
+
     function usesTheRegistry() {
         $this->handle(new __GenericObjectTransformerSpec_Bar(
             new \DateTime('2011-12-13 14:15:16 UTC'),
