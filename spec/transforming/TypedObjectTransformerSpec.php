@@ -108,12 +108,38 @@ class TypedObjectTransformerSpec {
             new ClassType(__TypedObjectTransformerSpec_Nes::class),
             new __TypedObjectTransformerSpec_Nes(
                 new __TypedObjectTransformerSpec_Foo()
-            ), [
-            'foo' => [
-                ObjectTransformer::TYPE_KEY => __TypedObjectTransformerSpec_Foo::class,
-                ObjectTransformer::DATA_KEY => []
-            ]
-        ]);
+            ),
+            [
+                'foo' => [
+                    ObjectTransformer::TYPE_KEY => __TypedObjectTransformerSpec_Foo::class,
+                    ObjectTransformer::DATA_KEY => []
+                ]
+            ]);
+    }
+
+    function handlesNull() {
+        $this->handle(
+            new ClassType(__TypedObjectTransformerSpec_Baz::class),
+            new __TypedObjectTransformerSpec_Baz(),
+            [
+                'foo' => null,
+                'bar' => []
+            ]);
+    }
+
+    function handlesInvalidAnnotations() {
+        $this->handle(
+            new ClassType(__TypedObjectTransformerSpec_Invalid::class),
+            new __TypedObjectTransformerSpec_Invalid(
+                new __TypedObjectTransformerSpec_Foo()
+            ),
+            [
+                'foo' => [
+                    ObjectTransformer::TYPE_KEY => __TypedObjectTransformerSpec_Foo::class,
+                    ObjectTransformer::DATA_KEY => []
+                ]
+
+            ]);
     }
 
     private function handle(ClassType $type, $value, $expectedTransformed = null) {
@@ -154,6 +180,27 @@ class __TypedObjectTransformerSpec_Baz {
     public function __construct($foo = null, $bar = []) {
         $this->foo = $foo;
         $this->bar = $bar;
+    }
+}
+
+class __TypedObjectTransformerSpec_Invalid {
+
+    /** @noinspection PhpUndefinedClassInspection */
+    /** @var foo */
+    private $foo;
+
+    public function __construct($foo) {
+        $this->foo = $foo;
+    }
+}
+
+class __TypedObjectTransformerSpec_Nullable {
+
+    /** @var null|__TypedObjectTransformerSpec_Foo */
+    private $foo;
+
+    public function __construct($foo) {
+        $this->foo = $foo;
     }
 }
 

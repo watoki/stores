@@ -45,6 +45,7 @@ class TypedObjectTransformer implements Transformer{
             && !(
                 is_array($transformed->getValue())
                 && array_key_exists(ObjectTransformer::TYPE_KEY, $transformed->getValue()))
+            && !is_null($transformed->getValue())
             && $transformed->getType() instanceof ClassType;
     }
 
